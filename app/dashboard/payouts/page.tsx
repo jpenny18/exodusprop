@@ -54,6 +54,7 @@ export default function PayoutsPage() {
     accountId: "",
     amount: "",
     method: "crypto" as "crypto" | "bank_transfer" | "card",
+    cryptoType: "usdc_solana" as "usdc_solana" | "usdt_trc20",
     walletAddress: "",
     bankDetails: {
       accountNumber: "",
@@ -130,20 +131,14 @@ export default function PayoutsPage() {
     try {
       setSubmitting(true);
       
-      const withdrawalDetails = {
-        accountId: newPayout.accountId,
-        amount,
-        method: newPayout.method,
-        ...(newPayout.method === 'crypto' && { 
-          cryptoAddress: newPayout.walletAddress,
-          cryptoNetwork: 'BTC' // Default, could be made selectable
-        }),
-        ...(newPayout.method === 'bank_transfer' && {
-          bankDetails: newPayout.bankDetails
-        })
-      };
+      // Currently only crypto withdrawals are supported
+      if (newPayout.method !== 'crypto') {
+        alert("Only crypto withdrawals are currently supported. Please select crypto method.");
+        setSubmitting(false);
+        return;
+      }
 
-      await submitWithdrawalDetails(userId, withdrawalDetails);
+      await submitWithdrawalDetails(userId, newPayout.cryptoType, newPayout.walletAddress);
 
       alert("Payout request submitted successfully! Processing time: 1-3 business days.");
       
@@ -151,6 +146,7 @@ export default function PayoutsPage() {
       setNewPayout({
         ...newPayout,
         amount: "",
+        cryptoType: "usdc_solana",
         walletAddress: "",
         bankDetails: {
           accountNumber: "",
