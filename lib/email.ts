@@ -1,8 +1,38 @@
 import { Resend } from 'resend';
-import { OrderData } from './firebase';
 
 // Initialize Resend with API key (only used in server components/API routes)
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Order data interface for email notifications
+interface OrderData {
+  id?: string;
+  challengeType: string;
+  challengeAmount: string;
+  platform: string;
+  firstName?: string;
+  lastName?: string;
+  customerName?: string;
+  customerEmail: string;
+  phone?: string;
+  customerPhone?: string;
+  country?: string;
+  customerCountry?: string;
+  discordUsername?: string;
+  customerDiscordUsername?: string;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  totalAmount?: number;
+  transactionId?: string;
+  paymentIntentId?: string;
+  createdAt: any;
+  status?: string;
+  cryptoType?: string;
+  cryptoAmount?: string;
+  cryptoAddress?: string;
+  usdAmount?: number;
+  verificationPhrase?: string;
+  addOns?: string[];
+}
 
 /**
  * Format currency as USD
