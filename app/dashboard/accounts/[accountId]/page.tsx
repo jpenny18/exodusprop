@@ -488,11 +488,13 @@ export default function AccountDetailsPage() {
       const cachedData = await getCachedMetrics(userAccountData.accountId);
       const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
       
-      const cachedLastUpdated = cachedData?.lastUpdated 
-        ? (typeof cachedData.lastUpdated === 'object' && 'toDate' in cachedData.lastUpdated 
-            ? cachedData.lastUpdated.toDate() 
-            : new Date(cachedData.lastUpdated))
-        : new Date(0);
+      let cachedLastUpdated = new Date(0);
+      if (cachedData?.lastUpdated) {
+        const lastUpdated = cachedData.lastUpdated as any;
+        cachedLastUpdated = typeof lastUpdated === 'object' && lastUpdated.toDate 
+          ? lastUpdated.toDate() 
+          : new Date(lastUpdated);
+      }
       
       if (cachedData && cachedLastUpdated > thirtyMinutesAgo && !showLoading) {
         // Use cached data
