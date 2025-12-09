@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { userDashboardNavItems } from "@/lib/dashboard-nav";
-import { auth, WithdrawalRequest } from "@/lib/firebase";
-import { submitWithdrawalDetails, getWithdrawalRequest, getUserMetaApiAccount, getKYCSubmission } from "@/lib/auth-helpers";
+import { auth } from "@/lib/firebase";
+import { submitWithdrawalDetails, getWithdrawalRequest, getUserMetaApiAccount, getKYCSubmission, WithdrawalRequest } from "@/lib/auth-helpers";
 import { onAuthStateChanged } from "firebase/auth";
 import { 
   Wallet, 
