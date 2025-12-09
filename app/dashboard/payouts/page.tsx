@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { userDashboardNavItems } from "@/lib/dashboard-nav";
 import { auth, WithdrawalRequest } from "@/lib/firebase";
-import { submitWithdrawalDetails, getUserWithdrawalRequests, getUserMetaApiAccount, getKYCSubmission } from "@/lib/auth-helpers";
+import { submitWithdrawalDetails, getWithdrawalRequest, getUserMetaApiAccount, getKYCSubmission } from "@/lib/auth-helpers";
 import { onAuthStateChanged } from "firebase/auth";
 import { 
   Wallet, 
@@ -79,8 +79,8 @@ export default function PayoutsPage() {
 
         // Load withdrawal history
         try {
-          const requests = await getUserWithdrawalRequests(user.uid);
-          setWithdrawalHistory(requests);
+          const request = await getWithdrawalRequest(user.uid);
+          setWithdrawalHistory(request ? [request] : []);
         } catch (error) {
           console.error('Error loading withdrawals:', error);
         }
@@ -161,8 +161,8 @@ export default function PayoutsPage() {
       });
 
       // Reload withdrawal history
-      const requests = await getUserWithdrawalRequests(userId);
-      setWithdrawalHistory(requests);
+      const request = await getWithdrawalRequest(userId);
+      setWithdrawalHistory(request ? [request] : []);
     } catch (error) {
       console.error('Error submitting payout:', error);
       alert("Failed to submit payout request. Please try again.");

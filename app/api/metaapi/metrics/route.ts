@@ -1011,8 +1011,8 @@ function calculateTradingObjectives(
       },
       maxDrawdown: {
         target: target.maxDrawdown,
-        current: currentDrawdown,
-        passed: currentDrawdown <= target.maxDrawdown,
+        current: staticDrawdown,
+        passed: staticDrawdown <= target.maxDrawdown,
         recentBreach: recentBreaches.maxDrawdown
       },
       maxDailyDrawdown: {
