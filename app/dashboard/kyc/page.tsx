@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { userDashboardNavItems } from "@/lib/dashboard-nav";
-import { auth, KYCSubmission } from "@/lib/firebase";
-import { getKYCSubmission, createOrUpdateKYCSubmission } from "@/lib/auth-helpers";
+import { auth } from "@/lib/firebase";
+import { getKYCSubmission, createOrUpdateKYCSubmission, KYCSubmission } from "@/lib/auth-helpers";
 import { onAuthStateChanged } from "firebase/auth";
 import { 
   Upload, 
