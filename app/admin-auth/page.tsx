@@ -1,13 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Image from "next/image";
 import { signIn } from "@/lib/auth-helpers";
 import { auth } from "@/lib/firebase";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Shield, Loader2, AlertCircle } from "lucide-react";
 
-export default function AdminAuthPage() {
+// Loading fallback for Suspense
+function AdminAuthLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-md text-center">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto" />
+        <p className="text-gray-400 mt-4">Loading admin portal...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main content component that uses useSearchParams
+function AdminAuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams?.get('redirect') || '/admin';
@@ -199,6 +212,15 @@ export default function AdminAuthPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Exported page component with Suspense boundary
+export default function AdminAuthPage() {
+  return (
+    <Suspense fallback={<AdminAuthLoading />}>
+      <AdminAuthContent />
+    </Suspense>
   );
 }
 
