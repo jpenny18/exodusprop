@@ -80,8 +80,7 @@ export default function PaymentPage() {
           BTC: 95000,
           ETH: 3500,
           USDT: 1,
-          USDC: 1,
-          source: 'fallback'
+          USDC: 1
         });
       } finally {
         setPricesLoading(false);
