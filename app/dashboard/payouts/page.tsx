@@ -35,9 +35,8 @@ const statusIcons = {
 };
 
 const methodIcons: { [key: string]: React.ElementType } = {
-  'bank_transfer': Building,
-  'crypto': Bitcoin,
-  'card': CreditCard
+  'usdc_solana': Bitcoin,
+  'usdt_trc20': Bitcoin
 };
 
 export default function PayoutsPage() {
@@ -417,10 +416,10 @@ export default function PayoutsPage() {
               <div className="space-y-3">
                 {withdrawalHistory.map((withdrawal) => {
                   const StatusIcon = statusIcons[withdrawal.status];
-                  const MethodIcon = methodIcons[withdrawal.method] || Bitcoin;
+                  const MethodIcon = methodIcons[withdrawal.paymentMethod] || Bitcoin;
 
                   return (
-                    <div key={withdrawal.requestId} className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+                    <div key={withdrawal.userId} className="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <StatusIcon size={16} className={
@@ -430,23 +429,23 @@ export default function PayoutsPage() {
                           } />
                           <span className="text-sm font-medium text-white capitalize">{withdrawal.status}</span>
                         </div>
-                        <span className="text-sm font-bold text-white">${withdrawal.amount.toLocaleString()}</span>
-              </div>
+                        <span className="text-sm font-bold text-white">${withdrawal.payoutAmount.toLocaleString()}</span>
+                      </div>
 
                       <div className="flex items-center justify-between text-xs text-gray-400">
                         <div className="flex items-center gap-1">
                           <MethodIcon size={12} />
-                          <span className="capitalize">{withdrawal.method.replace('_', ' ')}</span>
+                          <span className="capitalize">{withdrawal.paymentMethod.replace('_', ' ')}</span>
                         </div>
-                        <span>{new Date(withdrawal.createdAt.toMillis()).toLocaleDateString()}</span>
-              </div>
+                        <span>{new Date(withdrawal.createdAt).toLocaleDateString()}</span>
+                      </div>
 
-                      {withdrawal.adminNotes && (
+                      {withdrawal.reviewNotes && (
                         <div className="mt-2 p-2 bg-blue-500/5 border border-blue-500/20 rounded text-xs text-gray-400">
-                          <strong className="text-blue-400">Note:</strong> {withdrawal.adminNotes}
-              </div>
+                          <strong className="text-blue-400">Note:</strong> {withdrawal.reviewNotes}
+                        </div>
                       )}
-              </div>
+                    </div>
                   );
                 })}
               </div>
