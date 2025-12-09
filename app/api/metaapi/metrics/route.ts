@@ -1036,30 +1036,32 @@ function calculateTradingObjectives(
   // Regular challenge account objectives
   // EXODUS 1-STEP CHALLENGE OBJECTIVES
   // Using STATIC drawdown (from initial balance) NOT trailing drawdown (from peak)
+  // At this point we know it's NOT funded, so use the 1-step target explicitly
+  const challengeTarget = targets['1-step'];
   const objectives: any = {
     minTradingDays: {
-      target: target.minTradingDays,
+      target: challengeTarget.minTradingDays,
       current: tradingDays,
-      passed: tradingDays >= target.minTradingDays // Will always pass since target is 0
+      passed: tradingDays >= challengeTarget.minTradingDays // Will always pass since target is 0
     },
     maxDrawdown: {
-      target: target.maxDrawdown,
+      target: challengeTarget.maxDrawdown,
       current: staticDrawdown, // Use STATIC drawdown from initial balance
-      passed: staticDrawdown <= target.maxDrawdown, // Check against static threshold
+      passed: staticDrawdown <= challengeTarget.maxDrawdown, // Check against static threshold
       recentBreach: recentBreaches.maxDrawdown,
       isStatic: true, // Exodus uses static drawdown, not trailing
       trailingDrawdown: trailingDrawdown // Keep trailing for reference
     },
     maxDailyDrawdown: {
-      target: target.maxDailyDrawdown,
+      target: challengeTarget.maxDailyDrawdown,
       current: maxDailyDrawdown,
-      passed: maxDailyDrawdown <= target.maxDailyDrawdown,
+      passed: maxDailyDrawdown <= challengeTarget.maxDailyDrawdown,
       recentBreach: recentBreaches.dailyDrawdown
     },
     profitTarget: {
-      target: target.profitTargetStep1,
+      target: challengeTarget.profitTargetStep1,
       current: profitPercentage,
-      passed: profitPercentage >= target.profitTargetStep1
+      passed: profitPercentage >= challengeTarget.profitTargetStep1
     }
   };
   
