@@ -23,14 +23,14 @@ import {
 const statusColors = {
   completed: 'bg-green-500/20 text-green-400 border-green-500/30',
   pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  failed: 'bg-red-500/20 text-red-400 border-red-500/30',
+  approved: 'bg-green-500/20 text-green-400 border-green-500/30',
   rejected: 'bg-red-500/20 text-red-400 border-red-500/30'
 };
 
 const statusIcons = {
   completed: CheckCircle,
   pending: Clock,
-  failed: XCircle,
+  approved: CheckCircle,
   rejected: XCircle
 };
 
