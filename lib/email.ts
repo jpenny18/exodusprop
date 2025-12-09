@@ -40,7 +40,7 @@ export async function sendAdminNotificationEmail(order: OrderData & { id?: strin
           <div style="margin-bottom: 30px;">
             <p style="margin-bottom: 5px;"><strong>Order ID:</strong> ${order.id || 'N/A'}</p>
             <p style="margin-bottom: 5px;"><strong>Payment ID:</strong> ${order.transactionId || order.paymentIntentId || 'N/A'}</p>
-            <p style="margin-bottom: 5px;"><strong>Date:</strong> ${order.createdAt.toDate().toLocaleString()}</p>
+            <p style="margin-bottom: 5px;"><strong>Date:</strong> ${typeof order.createdAt === 'object' && 'toDate' in order.createdAt ? order.createdAt.toDate().toLocaleString() : new Date(order.createdAt).toLocaleString()}</p>
             <p style="margin-bottom: 5px;"><strong>Status:</strong> ${order.paymentStatus}</p>
           </div>
           
@@ -72,7 +72,7 @@ export async function sendAdminNotificationEmail(order: OrderData & { id?: strin
         
         Order ID: ${order.id || 'N/A'}
         Payment ID: ${order.transactionId || order.paymentIntentId || 'N/A'}
-        Date: ${order.createdAt.toDate().toLocaleString()}
+        Date: ${typeof order.createdAt === 'object' && 'toDate' in order.createdAt ? order.createdAt.toDate().toLocaleString() : new Date(order.createdAt).toLocaleString()}
         Status: ${order.paymentStatus}
         
         Customer Details:

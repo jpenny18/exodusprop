@@ -488,7 +488,11 @@ export default function AccountDetailsPage() {
       const cachedData = await getCachedMetrics(userAccountData.accountId);
       const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
       
-      const cachedLastUpdated = cachedData?.lastUpdated?.toDate ? cachedData.lastUpdated.toDate() : new Date(cachedData?.lastUpdated || 0);
+      const cachedLastUpdated = cachedData?.lastUpdated 
+        ? (typeof cachedData.lastUpdated === 'object' && 'toDate' in cachedData.lastUpdated 
+            ? cachedData.lastUpdated.toDate() 
+            : new Date(cachedData.lastUpdated))
+        : new Date(0);
       
       if (cachedData && cachedLastUpdated > thirtyMinutesAgo && !showLoading) {
         // Use cached data
@@ -748,7 +752,9 @@ export default function AccountDetailsPage() {
                     <p className="text-xs text-gray-400 mb-1">Start Date</p>
                     <p className="text-sm text-white">
                       {userAccount?.startDate ? 
-                        (userAccount.startDate.toDate ? userAccount.startDate.toDate().toLocaleDateString() : new Date(userAccount.startDate).toLocaleDateString()) 
+                        (typeof userAccount.startDate === 'object' && 'toDate' in userAccount.startDate 
+                          ? userAccount.startDate.toDate().toLocaleDateString() 
+                          : new Date(userAccount.startDate).toLocaleDateString()) 
                         : '-'
                       }
                     </p>

@@ -688,7 +688,13 @@ export default function AdminAccountDetailsPage() {
           });
         }
         
-        setLastUpdate(cachedData.lastUpdated?.toDate ? cachedData.lastUpdated.toDate() : new Date(cachedData.lastUpdated));
+        setLastUpdate(
+          cachedData.lastUpdated 
+            ? (typeof cachedData.lastUpdated === 'object' && 'toDate' in cachedData.lastUpdated 
+                ? cachedData.lastUpdated.toDate() 
+                : new Date(cachedData.lastUpdated))
+            : new Date()
+        );
         
         // Set basic account info
         setAccountInfo({

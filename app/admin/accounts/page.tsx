@@ -898,7 +898,7 @@ export default function AdminAccountsPage() {
       const getDateTimestamp = (date: any): number => {
         if (!date) return 0;
         if (typeof date === 'string') return new Date(date).getTime();
-        if (date.toDate) return date.toDate().getTime();
+        if (typeof date === 'object' && 'toDate' in date) return date.toDate().getTime();
         return 0;
       };
       
@@ -966,8 +966,16 @@ export default function AdminAccountsPage() {
           
         case 'last-updated':
           // Sort by last metrics update (most recent first)
-          const aUpdated = aMetrics?.lastUpdated?.toDate ? aMetrics.lastUpdated.toDate() : new Date(0);
-          const bUpdated = bMetrics?.lastUpdated?.toDate ? bMetrics.lastUpdated.toDate() : new Date(0);
+          const aUpdated = aMetrics?.lastUpdated 
+            ? (typeof aMetrics.lastUpdated === 'object' && 'toDate' in aMetrics.lastUpdated 
+                ? aMetrics.lastUpdated.toDate() 
+                : new Date(aMetrics.lastUpdated))
+            : new Date(0);
+          const bUpdated = bMetrics?.lastUpdated 
+            ? (typeof bMetrics.lastUpdated === 'object' && 'toDate' in bMetrics.lastUpdated 
+                ? bMetrics.lastUpdated.toDate() 
+                : new Date(bMetrics.lastUpdated))
+            : new Date(0);
           return bUpdated.getTime() - aUpdated.getTime();
           
         case 'account-size':
@@ -2637,7 +2645,14 @@ export default function AdminAccountsPage() {
                       <td className="p-4">
                         <p className="text-sm text-gray-400">
                           {metrics?.lastUpdated 
-                            ? formatDistanceToNow(typeof metrics.lastUpdated === 'string' ? new Date(metrics.lastUpdated) : (metrics.lastUpdated.toDate ? metrics.lastUpdated.toDate() : new Date()), { addSuffix: true })
+                            ? formatDistanceToNow(
+                                typeof metrics.lastUpdated === 'string' 
+                                  ? new Date(metrics.lastUpdated) 
+                                  : (typeof metrics.lastUpdated === 'object' && 'toDate' in metrics.lastUpdated 
+                                      ? metrics.lastUpdated.toDate() 
+                                      : new Date()), 
+                                { addSuffix: true }
+                              )
                             : config?.updatedAt 
                               ? formatDistanceToNow(typeof config.updatedAt === 'string' ? new Date(config.updatedAt) : new Date(), { addSuffix: true })
                               : 'Never'
