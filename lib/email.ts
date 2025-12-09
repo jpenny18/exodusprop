@@ -89,7 +89,7 @@ export async function sendAdminNotificationEmail(order: OrderData & { id?: strin
             <p style="margin-bottom: 5px;"><strong>Account Size:</strong> ${order.challengeAmount}</p>
             <p style="margin-bottom: 5px;"><strong>Platform:</strong> ${order.platform}</p>
             <p style="margin-bottom: 5px;"><strong>Payment Method:</strong> ${order.paymentMethod === 'card' ? 'Credit/Debit Card' : 'Cryptocurrency'}</p>
-            <p style="margin-bottom: 5px;"><strong>Amount Paid:</strong> ${formatCurrency(order.totalAmount)}</p>
+            <p style="margin-bottom: 5px;"><strong>Amount Paid:</strong> ${formatCurrency(order.totalAmount || 0)}</p>
           </div>
           
           <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; text-align: center; font-size: 12px; color: #666;">
@@ -117,7 +117,7 @@ export async function sendAdminNotificationEmail(order: OrderData & { id?: strin
         Account Size: ${order.challengeAmount}
         Platform: ${order.platform}
         Payment Method: ${order.paymentMethod === 'card' ? 'Credit/Debit Card' : 'Cryptocurrency'}
-        Amount Paid: ${formatCurrency(order.totalAmount)}
+        Amount Paid: ${formatCurrency(order.totalAmount || 0)}
       `,
     });
 
@@ -214,7 +214,7 @@ export async function sendCryptoOrderEmail(order: {
             ` : ''}
             <p style="margin-bottom: 5px;"><strong>Payment Method:</strong> Cryptocurrency (${order.cryptoType})</p>
             <p style="margin-bottom: 5px;"><strong>Crypto Amount:</strong> ${order.cryptoAmount} ${order.cryptoType}</p>
-            <p style="margin-bottom: 5px;"><strong>USD Amount:</strong> $${order.usdAmount.toFixed(2)}</p>
+            <p style="margin-bottom: 5px;"><strong>USD Amount:</strong> $${(order.usdAmount || 0).toFixed(2)}</p>
             <p style="margin-bottom: 5px;"><strong>Wallet Address:</strong> ${order.cryptoAddress}</p>
             <p style="margin-bottom: 5px;"><strong>Verification Phrase:</strong> ${order.verificationPhrase}</p>
           </div>
@@ -261,7 +261,7 @@ export async function sendCryptoOrderEmail(order: {
               </ul>
             ` : ''}
             <p style="margin-bottom: 5px;"><strong>Payment Amount:</strong> ${order.cryptoAmount} ${order.cryptoType}</p>
-            <p style="margin-bottom: 5px;"><strong>USD Value:</strong> $${order.usdAmount.toFixed(2)}</p>
+            <p style="margin-bottom: 5px;"><strong>USD Value:</strong> $${(order.usdAmount || 0).toFixed(2)}</p>
           </div>
           
           ${order.status !== 'COMPLETED' ? `
