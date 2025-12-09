@@ -10,10 +10,20 @@
   },
   "dependencies": {
     "@whop/checkout": "^0.0.44",
+    "apexcharts": "^5.3.6",
+    "date-fns": "^4.1.0",
     "firebase": "^12.6.0",
+    "firebase-admin": "^13.6.0",
+    "lucide-react": "^0.556.0",
+    "metaapi.cloud-sdk": "^29.3.2",
     "next": "^15.1.4",
+    "qrcode.react": "^4.2.0",
+    "random-words": "^2.0.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-apexcharts": "^1.9.0",
+    "react-dom": "^19.0.0",
+    "react-firebase-hooks": "^5.1.1",
+    "resend": "^6.5.2"
   },
   "devDependencies": {
     "@types/node": "^20",

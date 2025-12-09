@@ -5,13 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { WhopCheckoutEmbed } from "@whop/checkout/react";
 import { auth } from "@/lib/firebase";
-import { createUser, savePurchase } from "@/lib/auth-helpers";
+import { createUser, savePurchase, signIn } from "@/lib/auth-helpers";
 import { onAuthStateChanged } from "firebase/auth";
 
 export default function PurchasePage() {
   const [selectedAccount, setSelectedAccount] = useState(0);
   const [showPayment, setShowPayment] = useState(false);
-  const [isTestMode, setIsTestMode] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<"MT4" | "MT5">("MT4"); // Default to MT4
   const [formData, setFormData] = useState({
     // Billing Info
@@ -76,13 +75,33 @@ export default function PurchasePage() {
     setShowPayment(true);
   };
 
-  const handleTestPayment = async () => {
-    // Simulate successful payment for testing
-    await handlePaymentComplete(
-      accounts[selectedAccount].planId,
-      `test_receipt_${Date.now()}`
-    );
+  const handleCryptoPayment = () => {
+    if (!isFormValid()) {
+      alert('Please fill in all required fields before proceeding to payment.');
+      return;
+    }
+
+    // Store challenge data in sessionStorage for the payment page
+    const challengeData = {
+      type: '1-Step',
+      amount: accounts[selectedAccount].size,
+      platform: selectedPlatform,
+      formData: {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: '', // Not collected in current form
+        country: formData.country,
+        discordUsername: ''
+      },
+      price: accounts[selectedAccount].price,
+      addOns: []
+    };
+
+    sessionStorage.setItem('challengeData', JSON.stringify(challengeData));
+    window.location.href = '/purchase/payment';
   };
+
 
   const handlePaymentComplete = async (planId: string, receiptId?: string) => {
     try {
@@ -105,11 +124,20 @@ export default function PurchasePage() {
           });
           userId = newUser.uid;
           
-          // TODO: Send welcome email with temporary password
           console.log("New user created with temp password:", newUser.uid);
         } catch (error: any) {
-          // User might already exist, that's okay
-          console.log("User might already exist:", error.message);
+          // User might already exist, try to sign them in
+          console.log("User might already exist, attempting sign in:", error.message);
+          try {
+            await signIn(formData.email, TEMP_PASSWORD);
+            const signedInUser = auth.currentUser;
+            if (signedInUser) {
+              userId = signedInUser.uid;
+            }
+          } catch (signInError) {
+            console.error("Could not sign in existing user:", signInError);
+            // User exists but has different password - they'll need to login manually
+          }
         }
       }
 
@@ -134,6 +162,7 @@ export default function PurchasePage() {
           },
           timestamp: new Date().toISOString(),
           status: 'completed',
+          paymentMethod: 'card', // Whop card payment
         });
 
         // Create pending account (credentials will be added by admin)
@@ -146,6 +175,25 @@ export default function PurchasePage() {
           planId,
           receiptId: receiptId || "N/A",
         });
+
+        // Send confirmation emails to customer and admin
+        try {
+          await fetch('/api/send-purchase-emails', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              customerEmail: formData.email,
+              customerName: `${formData.firstName} ${formData.lastName}`,
+              accountSize: accounts[selectedAccount].size,
+              platform: selectedPlatform,
+              price: accounts[selectedAccount].price,
+              paymentMethod: 'card'
+            })
+          });
+        } catch (emailError) {
+          console.error('Error sending confirmation emails:', emailError);
+          // Don't block the flow if email fails
+        }
       }
 
       // Redirect to dashboard
@@ -515,7 +563,7 @@ export default function PurchasePage() {
                   </label>
                 </div>
 
-                {/* Purchase Button */}
+                {/* Purchase Buttons */}
                 <button
                   type="submit"
                   disabled={!isFormValid()}
@@ -525,11 +573,39 @@ export default function PurchasePage() {
                       : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"
                   }`}
                 >
-                  {isFormValid() ? `PROCEED TO PAYMENT - $${accounts[selectedAccount].price}` : "COMPLETE ALL FIELDS TO CONTINUE"}
+                  {isFormValid() ? `PAY WITH CARD - $${accounts[selectedAccount].price}` : "COMPLETE ALL FIELDS TO CONTINUE"}
                 </button>
 
                 <p className="text-center text-gray-400 text-xs mt-4">
-                  Secure checkout powered by Whop
+                  Secure checkout
+                </p>
+
+                {/* Divider */}
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/20"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-white/10 text-gray-400">OR</span>
+                  </div>
+                </div>
+
+                {/* Crypto Payment Button */}
+                <button
+                  type="button"
+                  onClick={handleCryptoPayment}
+                  disabled={!isFormValid()}
+                  className={`w-full py-3 md:py-4 rounded-lg font-bold text-base md:text-lg transition shadow-lg border-2 ${
+                    isFormValid()
+                      ? "border-green-500 bg-green-500/10 hover:bg-green-500/20 text-green-400 cursor-pointer"
+                      : "border-gray-600 bg-gray-600/10 text-gray-400 cursor-not-allowed opacity-50"
+                  }`}
+                >
+                  {isFormValid() ? `PAY WITH CRYPTO - $${accounts[selectedAccount].price}` : "COMPLETE ALL FIELDS TO CONTINUE"}
+                </button>
+
+                <p className="text-center text-gray-400 text-xs mt-4">
+                  Supports BTC, ETH, USDT (TRC20), USDC (Solana)
                 </p>
               </div>
             </div>
@@ -579,83 +655,39 @@ export default function PurchasePage() {
                 </div>
               </div>
 
-              {/* Test Mode Toggle (Development Only) */}
-              <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isTestMode}
-                    onChange={(e) => setIsTestMode(e.target.checked)}
-                    className="w-4 h-4 rounded border-2 border-yellow-500/50 bg-white/10 checked:bg-yellow-500"
-                  />
-                  <span className="text-yellow-400 text-sm font-semibold">
-                    🧪 Test Mode (Skip Payment - Dev Only)
-                  </span>
-                </label>
+              {/* Whop Payment Embed */}
+              <div className="min-h-[400px] rounded-lg overflow-hidden">
+                <WhopCheckoutEmbed
+                  planId={accounts[selectedAccount].planId}
+                  theme="dark"
+                  hideAddressForm={true}
+                  hideEmail={false}
+                  prefill={{
+                    email: formData.email,
+                    address: {
+                      name: `${formData.firstName} ${formData.lastName}`,
+                      country: formData.country === "United States" ? "US" : 
+                               formData.country === "United Kingdom" ? "GB" :
+                               formData.country === "Canada" ? "CA" :
+                               formData.country,
+                      line1: formData.streetAddress,
+                      city: formData.city,
+                      state: formData.state,
+                      postalCode: formData.postalCode,
+                    }
+                  }}
+                  onComplete={handlePaymentComplete}
+                  fallback={
+                    <div className="flex items-center justify-center h-96">
+                      <div className="text-white text-lg">Loading payment form...</div>
+                    </div>
+                  }
+                />
               </div>
 
-              {/* Whop Payment Embed or Test Mode */}
-              {!isTestMode ? (
-                <>
-                  <div className="min-h-[400px] rounded-lg overflow-hidden">
-                    <WhopCheckoutEmbed
-                      planId={accounts[selectedAccount].planId}
-                      theme="dark"
-                      hideAddressForm={true}
-                      hideEmail={false}
-                      prefill={{
-                        email: formData.email,
-                        address: {
-                          name: `${formData.firstName} ${formData.lastName}`,
-                          country: formData.country === "United States" ? "US" : 
-                                   formData.country === "United Kingdom" ? "GB" :
-                                   formData.country === "Canada" ? "CA" :
-                                   formData.country,
-                          line1: formData.streetAddress,
-                          city: formData.city,
-                          state: formData.state,
-                          postalCode: formData.postalCode,
-                        }
-                      }}
-                      onComplete={handlePaymentComplete}
-                      fallback={
-                        <div className="flex items-center justify-center h-96">
-                          <div className="text-white text-lg">Loading payment form...</div>
-                        </div>
-                      }
-                    />
-                  </div>
-
-                  <p className="text-center text-gray-400 text-xs mt-6">
-                    Secure checkout powered by Whop
-                  </p>
-                </>
-              ) : (
-                <div className="min-h-[400px] rounded-lg overflow-hidden bg-exodus-dark/50 border-2 border-yellow-500/30 p-8 flex flex-col items-center justify-center">
-                  <div className="text-center mb-6">
-                    <div className="text-6xl mb-4">🧪</div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Test Mode Active</h3>
-                    <p className="text-gray-300 mb-4">
-                      This will simulate a successful payment and create your account in Firebase
-                    </p>
-                    <div className="bg-white/5 rounded-lg p-4 mb-6 text-left">
-                      <p className="text-sm text-gray-300 mb-2"><strong className="text-white">Order Summary:</strong></p>
-                      <p className="text-sm text-gray-300">Account: <strong className="text-white">{accounts[selectedAccount].size}</strong></p>
-                      <p className="text-sm text-gray-300">Price: <strong className="text-exodus-light-blue">${accounts[selectedAccount].price}</strong></p>
-                      <p className="text-sm text-gray-300">Email: <strong className="text-white">{formData.email}</strong></p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleTestPayment}
-                    className="bg-yellow-500 hover:bg-yellow-400 text-exodus-dark px-8 py-4 rounded-lg font-bold text-lg transition shadow-lg"
-                  >
-                    🚀 Simulate Payment & Create Account
-                  </button>
-                  <p className="text-yellow-400 text-xs mt-4">
-                    ⚠️ Remove this before production!
-                  </p>
-                </div>
-              )}
+              <p className="text-center text-gray-400 text-xs mt-6">
+                Secure checkout
+              </p>
             </div>
           </div>
         )}

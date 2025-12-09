@@ -40,3 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# SC-SYSTEM reference files (old propfirm - don't commit)
+/SC-SYSTEM/
+ACCOUNT_MANAGEMENT_INTEGRATION.md
+INTEGRATION_CHECKLIST.md
+
