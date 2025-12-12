@@ -7,6 +7,7 @@ import { WhopCheckoutEmbed } from "@whop/checkout/react";
 import { auth } from "@/lib/firebase";
 import { createUser, savePurchase, signIn } from "@/lib/auth-helpers";
 import { onAuthStateChanged } from "firebase/auth";
+import { trackViewContent, trackInitiateCheckout, trackPurchase } from "@/lib/facebookPixel";
 
 export default function PurchasePage() {
   const [selectedAccount, setSelectedAccount] = useState(0);
@@ -105,6 +106,9 @@ export default function PurchasePage() {
 
   const handlePaymentComplete = async (planId: string, receiptId?: string) => {
     try {
+      // Track successful purchase with Meta Pixel
+      trackPurchase(accounts[selectedAccount].price, "USD");
+      
       // Check if user is already authenticated
       const currentUser = auth.currentUser;
       let userId = currentUser?.uid;
@@ -211,6 +215,12 @@ export default function PurchasePage() {
     "India", "China", "Japan", "South Korea", "Singapore", "UAE",
     "South Africa", "Nigeria", "Other"
   ];
+
+  // Track ViewContent and InitiateCheckout when landing on purchase page
+  useEffect(() => {
+    trackViewContent({ page: "purchase" });
+    trackInitiateCheckout();
+  }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-exodus-blue via-exodus-blue to-exodus-dark relative overflow-hidden">

@@ -1,16 +1,33 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, LayoutDashboard } from 'lucide-react';
+import { trackPurchase } from '@/lib/facebookPixel';
 
 export default function CryptoPendingPage() {
   const router = useRouter();
+  const [purchaseTracked, setPurchaseTracked] = useState(false);
 
-  // Clear challenge data from session storage
+  // Track Purchase event and clear challenge data
   useEffect(() => {
+    // Get challenge data to track purchase value
+    const storedData = sessionStorage.getItem('challengeData');
+    
+    if (storedData && !purchaseTracked) {
+      try {
+        const challengeData = JSON.parse(storedData);
+        // Track the purchase with the actual order value
+        trackPurchase(challengeData.price, "USD");
+        setPurchaseTracked(true);
+      } catch (error) {
+        console.error('Error parsing challenge data for pixel tracking:', error);
+      }
+    }
+    
+    // Clear challenge data from session storage after tracking
     sessionStorage.removeItem('challengeData');
-  }, []);
+  }, [purchaseTracked]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { trackViewContent, trackInitiateCheckout } from "@/lib/facebookPixel";
 
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -18,6 +19,11 @@ export default function Home() {
   const toggleTooltip = (id: string) => {
     setActiveTooltip(activeTooltip === id ? null : id);
   };
+
+  // Track ViewContent on main landing page
+  useEffect(() => {
+    trackViewContent({ page: "home" });
+  }, []);
 
   const tooltips = {
     profitShare: "You keep up to 90% of all profits you generate while trading the funded account. We believe in rewarding successful traders.",
@@ -220,7 +226,11 @@ export default function Home() {
             </p>
             
             <div className="flex gap-4 mb-12 md:mb-16">
-              <a href="/purchase" className="bg-exodus-light-blue hover:bg-blue-400 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold text-base md:text-lg transition shadow-lg shadow-exodus-light-blue/30 inline-block">
+              <a 
+                href="/purchase" 
+                onClick={() => trackInitiateCheckout()}
+                className="bg-exodus-light-blue hover:bg-blue-400 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold text-base md:text-lg transition shadow-lg shadow-exodus-light-blue/30 inline-block"
+              >
                 START TRADING
               </a>
             </div>
@@ -299,7 +309,11 @@ export default function Home() {
           </div>
 
           <div className="text-center">
-            <a href="/purchase" className="bg-exodus-light-blue hover:bg-blue-400 text-white px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg inline-block">
+            <a 
+              href="/purchase" 
+              onClick={() => trackInitiateCheckout()}
+              className="bg-exodus-light-blue hover:bg-blue-400 text-white px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg inline-block"
+            >
               CHOOSE YOUR ACCOUNT SIZE
             </a>
           </div>
@@ -630,7 +644,11 @@ export default function Home() {
             </div>
 
             <div className="text-center mt-6 md:mt-8">
-              <a href="/purchase" className="bg-exodus-light-blue hover:bg-blue-400 text-white px-8 md:px-12 py-3 md:py-4 rounded-lg font-bold text-base md:text-lg transition shadow-lg shadow-exodus-light-blue/30 w-full md:w-auto inline-block">
+              <a 
+                href="/purchase" 
+                onClick={() => trackInitiateCheckout()}
+                className="bg-exodus-light-blue hover:bg-blue-400 text-white px-8 md:px-12 py-3 md:py-4 rounded-lg font-bold text-base md:text-lg transition shadow-lg shadow-exodus-light-blue/30 w-full md:w-auto inline-block"
+              >
                 START TRADING
               </a>
             </div>
