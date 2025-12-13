@@ -757,7 +757,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-6 md:gap-8">
             {/* Discord */}
-            <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 md:p-8 shadow-xl">
+            <div className="hidden">
               <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 italic">
                 JOIN OUR DISCORD
               </h3>
@@ -884,6 +884,8 @@ export default function Home() {
               © {new Date().getFullYear()} EXODUS TRADING LTD. All rights reserved.
             </p>
             <p className="text-xs max-w-4xl mx-auto leading-relaxed">
+              Disclaimer: Exodus Trading Ltd. provides access to simulated trading environments strictly for educational and evaluative purposes. No live trading occurs, and no real funds are invested, traded, or managed. All activities are demo-based using virtual balances with no cash value. Participation in our challenges does not constitute a financial service or investment opportunity. We do not offer financial advice or facilitate real-market trading. Payments are for platform access only and are non-refundable. Use of our services is subject to our Terms & Conditions and Privacy Policy.
+              <br /><br />
               Important Disclosures about Exodus, Forex Trading Ltd. ("Forex") and the Funded-Trader Program:
               Exodus evaluation program is intentionally designed to identify and test trading skill and strategy discipline before any 
               proprietary capital is allocated. Most applicants do not pass on their first attempt and there is no 
@@ -894,8 +896,7 @@ export default function Home() {
               position, and hold no beneficial or proprietary interest in Exodus accounts, assets or trades. When an FT submits a trade idea, Exodus may in its absolute discretion, either as an internal, administrative book entry or 
               record the idea as an internal administrative book entry only and calculate a 
               theoretical P&L accordingly without placing any corresponding real-money trade with any broker or exchange. In either case, P&L may be calculated at the same price-time intervals. Exodus may receive financial incentives from third parties based on trade ideas provided by FTs. Because such revenue is retained solely by Exodus and is not shared with FTs, conflicts of interest 
-              may exist between Exodus and each FT, and there is no guarantee that Exodus earns fees each time an evaluation trader fails, and there is no guarantee that Exodus purchases an evaluation, conflicts of interest may also 
-              exist between Exodus and each evaluation trader.
+              may exist between Exodus and each FT, Exodus earns fees each time an evaluation trader fails, conflicts of interest may also exist between Exodus and each evaluation trader.
               <br /><br />
               Forex trading involves substantial risk of loss. Past performance is not indicative of future results. Please trade responsibly.
             </p>
