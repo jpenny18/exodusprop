@@ -209,46 +209,147 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-exodus-blue via-exodus-blue to-exodus-dark pt-24 md:pt-32 pb-32 md:pb-40 px-4 overflow-hidden min-h-[700px] md:min-h-[700px]">
+      <section className="relative bg-gradient-to-br from-exodus-blue via-exodus-blue to-exodus-dark pt-24 md:pt-32 pb-6 md:pb-40 px-4 overflow-hidden min-h-[100vh] md:min-h-[700px]">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-10 w-72 h-72 bg-exodus-light-blue rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
         </div>
         
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="text-left max-w-4xl">
-            <h1 className="text-4xl sm:text-4xl md:text-7xl font-bold text-white mb-4 md:mb-6 leading-tight">
-              Pass a trading test and trade forex{" "}
-              <span className="text-exodus-light-blue">without depositing your own money.</span>
-            </h1>
-            <p className="text-lg md:text-2xl text-gray-200 mb-8 md:mb-10">
-              Withdraw your profits anytime, on-demand.
-            </p>
-            
-            <div className="flex gap-4 mb-12 md:mb-16">
+        <div className="max-w-6xl mx-auto relative z-10 h-full flex flex-col md:block">
+          {/* Mobile Layout */}
+          <div className="md:hidden flex flex-col justify-between h-full">
+            {/* Main Heading */}
+            <div className="text-center pt-4 pb-2">
+              <h1 className="text-2xl font-bold text-white mb-2 leading-tight px-2">
+                Pass a trading test and trade forex{" "}
+                <span className="text-exodus-light-blue">without depositing your own money.</span>
+              </h1>
+            </div>
+
+            {/* iPhone Mockup with Trustpilot Badge */}
+            <div className="flex justify-center items-center flex-shrink-0 relative">
+              {/* Subtle Background Accent Effects */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+                {/* Top-left soft glow */}
+                <div className="absolute -left-12 top-12 w-40 h-40 bg-exodus-light-blue/10 rounded-full blur-3xl"></div>
+                
+                {/* Right side soft glow */}
+                <div className="absolute -right-12 top-1/3 w-48 h-48 bg-blue-400/8 rounded-full blur-3xl"></div>
+                
+                {/* Bottom-left subtle accent */}
+                <div className="absolute left-8 bottom-16 w-32 h-32 bg-purple-400/8 rounded-full blur-2xl"></div>
+                
+                {/* Center-back subtle highlight */}
+                <div className="absolute inset-x-0 top-1/4 w-56 h-56 mx-auto bg-exodus-light-blue/6 rounded-full blur-3xl"></div>
+              </div>
+              
+              <Image
+                src="/i-mock.png"
+                alt="Exodus Trading App"
+                width={560}
+                height={1120}
+                priority
+                className="w-auto h-[60vh] max-h-[800px] object-contain drop-shadow-2xl relative z-10"
+              />
+
+              {/* Trustpilot Badge - Positioned top right */}
+              <a 
+                href="https://www.trustpilot.com/review/exodusprop.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute top-4 right-2 z-20 bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 shadow-xl hover:scale-105 transition-transform duration-300"
+              >
+                <div className="flex flex-col items-center gap-1.5">
+                  {/* Trustpilot Logo */}
+                  <div className="flex items-center gap-1.5">
+                    <svg className="w-4 h-4 text-[#00B67A]" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
+                    <span className="text-xs font-bold text-white">Trustpilot</span>
+                  </div>
+                  
+                  {/* Star Rating */}
+                  <div className="w-16">
+                    <Image
+                      src="/stars-4.svg"
+                      alt="4 stars"
+                      width={64}
+                      height={12}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                  
+                  {/* TrustScore */}
+                  <p className="text-xs font-bold text-white">TrustScore <span className="text-[#00B67A]">3.8</span></p>
+                </div>
+              </a>
+            </div>
+
+            {/* Subheading & CTA */}
+            <div className="text-center">
+              <p className="text-base text-gray-200 mb-3 px-4">
+                Withdraw your profits anytime, on-demand.
+              </p>
               <a 
                 href="/purchase" 
                 onClick={() => trackInitiateCheckout()}
-                className="bg-exodus-light-blue hover:bg-blue-400 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold text-base md:text-lg transition shadow-lg shadow-exodus-light-blue/30 inline-block"
+                className="bg-exodus-light-blue hover:bg-blue-400 text-white px-6 py-3 rounded-lg font-semibold text-base transition shadow-lg shadow-exodus-light-blue/30 inline-block mb-3"
               >
                 START TRADING
               </a>
             </div>
+
+            {/* Live Forex Ticker Slider */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-white/10 overflow-hidden">
+              <div className="flex gap-6 animate-scroll">
+                {[...forexPairs, ...forexPairs].map((item, index) => (
+                  <div key={index} className="flex items-center gap-2 min-w-max text-xs">
+                    <span className={item.change.startsWith('+') ? "text-green-400" : "text-red-400"}>●</span>
+                    <span className="text-gray-300 font-semibold">{item.pair}</span>
+                    <span className="text-white font-bold">{item.price}</span>
+                    <span className={item.change.startsWith('+') ? "text-green-400 text-xs" : "text-red-400 text-xs"}>
+                      {item.change}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Live Forex Ticker Slider */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-white/10 overflow-hidden">
-            <div className="flex gap-6 md:gap-8 animate-scroll">
-              {[...forexPairs, ...forexPairs].map((item, index) => (
-                <div key={index} className="flex items-center gap-2 md:gap-3 min-w-max text-sm md:text-base">
-                  <span className={item.change.startsWith('+') ? "text-green-400" : "text-red-400"}>●</span>
-                  <span className="text-gray-300 font-semibold">{item.pair}</span>
-                  <span className="text-white font-bold">{item.price}</span>
-                  <span className={item.change.startsWith('+') ? "text-green-400 text-xs md:text-sm" : "text-red-400 text-xs md:text-sm"}>
-                    {item.change}
-                  </span>
-                </div>
-              ))}
+          {/* Desktop Layout */}
+          <div className="hidden md:block text-left max-w-4xl">
+            <h1 className="text-7xl font-bold text-white mb-6 leading-tight">
+              Pass a trading test and trade forex{" "}
+              <span className="text-exodus-light-blue">without depositing your own money.</span>
+            </h1>
+            <p className="text-2xl text-gray-200 mb-10">
+              Withdraw your profits anytime, on-demand.
+            </p>
+            
+            <div className="flex gap-4 mb-16">
+              <a 
+                href="/purchase" 
+                onClick={() => trackInitiateCheckout()}
+                className="bg-exodus-light-blue hover:bg-blue-400 text-white px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg shadow-exodus-light-blue/30 inline-block"
+              >
+                START TRADING
+              </a>
+            </div>
+
+            {/* Live Forex Ticker Slider - Desktop */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10 overflow-hidden">
+              <div className="flex gap-8 animate-scroll">
+                {[...forexPairs, ...forexPairs].map((item, index) => (
+                  <div key={index} className="flex items-center gap-3 min-w-max text-base">
+                    <span className={item.change.startsWith('+') ? "text-green-400" : "text-red-400"}>●</span>
+                    <span className="text-gray-300 font-semibold">{item.pair}</span>
+                    <span className="text-white font-bold">{item.price}</span>
+                    <span className={item.change.startsWith('+') ? "text-green-400 text-sm" : "text-red-400 text-sm"}>
+                      {item.change}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
