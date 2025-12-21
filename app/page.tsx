@@ -355,6 +355,47 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Partnership Banner */}
+      <section className="py-8 md:py-12 px-4 bg-gray-50">
+        <div className="max-w-5xl mx-auto">
+          <div className="relative bg-gradient-to-r from-exodus-blue via-exodus-dark to-exodus-blue rounded-3xl p-8 md:p-12 overflow-hidden shadow-2xl">
+            {/* Background Effects */}
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-exodus-light-blue rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+            </div>
+            
+            {/* Content */}
+            <div className="relative z-10 flex items-center justify-center gap-6 md:gap-8">
+              {/* Exodus Logo */}
+              <div className="flex-shrink-0">
+                <Image
+                  src="/exodus.png"
+                  alt="Exodus"
+                  width={96}
+                  height={96}
+                  className="w-20 h-20 md:w-24 md:h-24 object-contain"
+                />
+              </div>
+              
+              {/* Plus Sign */}
+              <div className="text-white text-3xl md:text-5xl font-light">+</div>
+              
+              {/* Whop Logo */}
+              <div className="flex-shrink-0">
+                <Image
+                  src="/whop.png"
+                  alt="Whop"
+                  width={160}
+                  height={96}
+                  className="w-28 h-20 md:w-40 md:h-24 object-contain"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section id="features" className="py-20 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
