@@ -132,24 +132,30 @@ export default function Home() {
                   </button>
                   {openLearnDropdown && (
                     <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2">
-                      <a
-                        href="#"
+                      <Link
+                        href="/how-we-pay"
                         className="block px-4 py-2 text-exodus-dark hover:bg-gray-100 text-sm"
                       >
-                        Trading Rules
-                      </a>
-                      <a
-                        href="#"
+                        How We Pay Traders
+                      </Link>
+                      <Link
+                        href="/rules"
+                        className="block px-4 py-2 text-exodus-dark hover:bg-gray-100 text-sm"
+                      >
+                        Rules & Objectives
+                      </Link>
+                      <Link
+                        href="/how-it-works"
                         className="block px-4 py-2 text-exodus-dark hover:bg-gray-100 text-sm"
                       >
                         How It Works
-                      </a>
-                      <a
-                        href="#"
+                      </Link>
+                      <Link
+                        href="/resources"
                         className="block px-4 py-2 text-exodus-dark hover:bg-gray-100 text-sm"
                       >
                         Resources
-                      </a>
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -190,17 +196,29 @@ export default function Home() {
           {mobileMenuOpen && (
             <div className="md:hidden pb-4 border-t border-exodus-light-blue/20 mt-2">
               <div className="flex flex-col gap-3 pt-4">
+                <Link href="/how-we-pay" className="text-white hover:text-exodus-light-blue transition py-2">
+                  How We Pay Traders
+                </Link>
+                <Link href="/rules" className="text-white hover:text-exodus-light-blue transition py-2">
+                  Rules & Objectives
+                </Link>
+                <Link href="/how-it-works" className="text-white hover:text-exodus-light-blue transition py-2">
+                  How It Works
+                </Link>
+                <Link href="/resources" className="text-white hover:text-exodus-light-blue transition py-2">
+                  Resources
+                </Link>
                 <a href="#faq" className="text-white hover:text-exodus-light-blue transition py-2">
-                  FAQ
+                  Faq
                 </a>
                 <a href="#pricing" className="text-white hover:text-exodus-light-blue transition py-2">
-                  PRICING
+                  Pricing
                 </a>
                 <a href="#contact" className="text-white hover:text-exodus-light-blue transition py-2">
-                  CONTACT
+                  Contact
                 </a>
                 <a href="/auth" className="bg-exodus-light-blue hover:bg-blue-400 text-white px-5 py-2.5 rounded-lg font-semibold transition text-left block">
-                  SIGN UP
+                  Sign up
                 </a>
               </div>
             </div>
