@@ -278,13 +278,8 @@ export default function Home() {
                 className="absolute top-4 right-2 z-20 bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 shadow-xl hover:scale-105 transition-transform duration-300"
               >
                 <div className="flex flex-col items-center gap-1.5">
-                  {/* Trustpilot Logo */}
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-[#00B67A]" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                    </svg>
-                    <span className="text-xs font-bold text-white">Trustpilot</span>
-                  </div>
+                  {/* Great Text */}
+                  <span className="text-xs font-bold text-white">Great</span>
                   
                   {/* Star Rating */}
                   <div className="w-16">
@@ -297,8 +292,13 @@ export default function Home() {
                     />
                   </div>
                   
-                  {/* TrustScore */}
-                  <p className="text-xs font-bold text-white">TrustScore <span className="text-[#00B67A]">3.8</span></p>
+                  {/* Trustpilot Logo */}
+                  <div className="flex items-center gap-1.5">
+                    <svg className="w-4 h-4 text-[#00B67A]" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
+                    <span className="text-xs font-bold text-white">Trustpilot</span>
+                  </div>
                 </div>
               </a>
             </div>
@@ -335,39 +335,96 @@ export default function Home() {
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden md:block text-left max-w-4xl">
-            <h1 className="text-7xl font-bold text-white mb-6 leading-tight">
-              Pass a trading test and trade forex{" "}
-              <span className="text-exodus-light-blue">without depositing your own money.</span>
-            </h1>
-            <p className="text-2xl text-gray-200 mb-10">
-              Withdraw your profits anytime, on-demand.
-            </p>
-            
-            <div className="flex gap-4 mb-16">
+          <div className="hidden md:grid md:grid-cols-2 gap-12 items-center">
+            {/* Left Column - Content */}
+            <div className="text-left">
+              <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight">
+                Pass a trading test and trade forex{" "}
+                <span className="text-exodus-light-blue">without depositing your own money.</span>
+              </h1>
+              <p className="text-xl lg:text-2xl text-gray-200 mb-10">
+                Withdraw your profits anytime, on-demand.
+              </p>
+              
+              <div className="flex gap-4 mb-12">
+                <a 
+                  href="/purchase" 
+                  onClick={() => trackInitiateCheckout()}
+                  className="bg-exodus-light-blue hover:bg-blue-400 text-white px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg shadow-exodus-light-blue/30 inline-block"
+                >
+                  START TRADING
+                </a>
+              </div>
+
+              {/* Live Forex Ticker Slider - Desktop */}
+              <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10 overflow-hidden">
+                <div className="flex gap-8 animate-scroll">
+                  {[...forexPairs, ...forexPairs].map((item, index) => (
+                    <div key={index} className="flex items-center gap-3 min-w-max text-base">
+                      <span className={item.change.startsWith('+') ? "text-green-400" : "text-red-400"}>●</span>
+                      <span className="text-gray-300 font-semibold">{item.pair}</span>
+                      <span className="text-white font-bold">{item.price}</span>
+                      <span className={item.change.startsWith('+') ? "text-green-400 text-sm" : "text-red-400 text-sm"}>
+                        {item.change}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Trustpilot Badge - Desktop Only (Horizontal) */}
               <a 
-                href="/purchase" 
-                onClick={() => trackInitiateCheckout()}
-                className="bg-exodus-light-blue hover:bg-blue-400 text-white px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg shadow-exodus-light-blue/30 inline-block"
+                href="https://www.trustpilot.com/review/exodusprop.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/20 shadow-lg hover:scale-105 transition-transform duration-300 inline-flex items-center justify-center gap-3"
               >
-                START TRADING
+                {/* "Great" Text */}
+                <span className="text-sm font-bold text-white">Great</span>
+                
+                {/* Star Rating */}
+                <div className="w-20">
+                  <Image
+                    src="/stars-4.svg"
+                    alt="4 stars"
+                    width={80}
+                    height={15}
+                    className="w-full h-auto"
+                  />
+                </div>
+                
+                {/* Trustpilot Logo and Text */}
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-[#00B67A]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                  </svg>
+                  <span className="text-sm font-bold text-white">Trustpilot</span>
+                </div>
               </a>
             </div>
 
-            {/* Live Forex Ticker Slider - Desktop */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10 overflow-hidden">
-              <div className="flex gap-8 animate-scroll">
-                {[...forexPairs, ...forexPairs].map((item, index) => (
-                  <div key={index} className="flex items-center gap-3 min-w-max text-base">
-                    <span className={item.change.startsWith('+') ? "text-green-400" : "text-red-400"}>●</span>
-                    <span className="text-gray-300 font-semibold">{item.pair}</span>
-                    <span className="text-white font-bold">{item.price}</span>
-                    <span className={item.change.startsWith('+') ? "text-green-400 text-sm" : "text-red-400 text-sm"}>
-                      {item.change}
-                    </span>
-                  </div>
-                ))}
+            {/* Right Column - Desktop Mockup with Trustpilot Badge */}
+            <div className="flex justify-center items-center relative -mr-12 lg:-mr-20">
+              {/* Subtle Background Accent Effects */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-visible">
+                {/* Top-left soft glow */}
+                <div className="absolute -left-20 top-0 w-96 h-96 bg-exodus-light-blue/8 rounded-full blur-3xl"></div>
+                
+                {/* Right side soft glow */}
+                <div className="absolute -right-20 top-1/3 w-[500px] h-[500px] bg-blue-400/6 rounded-full blur-3xl"></div>
+                
+                {/* Bottom accent */}
+                <div className="absolute left-0 bottom-0 w-80 h-80 bg-purple-400/6 rounded-full blur-3xl"></div>
               </div>
+              
+              <Image
+                src="/desk-mock.png"
+                alt="Exodus Trading Platform"
+                width={1400}
+                height={900}
+                priority
+                className="w-[140%] max-w-none h-auto object-contain drop-shadow-2xl relative z-10"
+              />
             </div>
           </div>
         </div>
