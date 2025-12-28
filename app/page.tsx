@@ -539,65 +539,183 @@ export default function Home() {
 
       {/* How It Works */}
       <section className="py-20 px-4 bg-gradient-to-br from-exodus-dark to-exodus-blue">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-5xl font-bold text-center text-white mb-4">
-            Become a Forex Prop Trader
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl md:text-5xl font-bold text-center text-white mb-4">
+            How It Works
           </h2>
-          <p className="text-center text-exodus-light-blue mb-16 text-xl">
-            Start trading with Exodus capital today
+          <p className="text-center text-gray-300 mb-16 text-lg md:text-xl">
+            Start earning rewards. All it takes is three focused steps.
           </p>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="relative scale-[0.6] md:scale-100 origin-top">
-              <div className="bg-exodus-blue/50 backdrop-blur-sm border-2 border-exodus-light-blue rounded-2xl p-8 h-full">
-                <h3 className="text-2xl font-bold text-white mb-3 italic">
-                  PASS THE EXODUS EVALUATION
+          <div className="grid md:grid-cols-3 gap-4 md:gap-4 px-6 md:px-0">
+            {/* Card 1 - Start */}
+            <div className="relative">
+              <div className="bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 h-full border border-gray-800 hover:border-exodus-light-blue/50 transition-colors">
+                {/* Header with label */}
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-gray-500 text-xs font-medium flex items-center gap-1">
+                    Start
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                  {/* Arrow on card */}
+                  <div className="hidden md:block text-gray-600 text-2xl">→</div>
+                </div>
+                
+                <div className="flex items-start gap-2 mb-4">
+                  <span className="text-4xl md:text-6xl font-bold text-white">1</span>
+                  <div className="bg-exodus-light-blue rounded-lg p-1.5">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  </div>
+                </div>
+
+                <h3 className="text-lg md:text-2xl font-bold text-white mb-2">
+                  Exodus Challenge
                 </h3>
-                <p className="text-exodus-light-blue text-lg">
-                  Pick the 1-step trading test with clear rules and no time limits.
+                <p className="text-gray-400 mb-4 text-xs md:text-sm">
+                  The Exodus Challenge develops trading skills through structured objectives.
                 </p>
+
+                {/* Bullet points */}
+                <ul className="space-y-1.5 mb-4">
+                  <li className="flex items-start gap-1.5 text-gray-300 text-xs md:text-sm">
+                    <svg className="w-3.5 h-3.5 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Follow trading objectives</span>
+                  </li>
+                  <li className="flex items-start gap-1.5 text-gray-300 text-xs md:text-sm">
+                    <svg className="w-3.5 h-3.5 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Prove your trading strategy</span>
+                  </li>
+                </ul>
+
+                {/* CTA Button */}
+                <a 
+                  href="#pricing"
+                  className="block w-full bg-exodus-light-blue hover:bg-blue-400 text-white text-center py-2 rounded-lg font-semibold transition text-xs md:text-sm"
+                >
+                  Start Exodus Challenge
+                </a>
               </div>
-              {/* Arrow - Desktop Right, Mobile Down */}
-              <div className="hidden md:block absolute -right-4 top-1/2 transform -translate-y-1/2 text-exodus-light-blue text-4xl">
-                →
-              </div>
-            </div>
-            {/* Mobile Down Arrow */}
-            <div className="md:hidden flex justify-center -my-4">
-              <svg className="w-12 h-12 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
             </div>
 
-            <div className="relative scale-[0.6] md:scale-100 origin-top">
-              <div className="bg-exodus-blue/50 backdrop-blur-sm border-2 border-exodus-light-blue rounded-2xl p-8 h-full">
-                <h3 className="text-2xl font-bold text-white mb-3 italic">
-                  TRADE YOUR FUNDED EXODUS ACCOUNT
+            {/* Card 2 - Verify */}
+            <div className="relative">
+              <div className="bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 h-full border border-gray-800 hover:border-exodus-light-blue/50 transition-colors">
+                {/* Header with label */}
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-gray-500 text-xs font-medium flex items-center gap-1">
+                    Verify
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                  {/* Arrow on card */}
+                  <div className="hidden md:block text-gray-600 text-2xl">→</div>
+                </div>
+                
+                <div className="flex items-start gap-2 mb-4">
+                  <span className="text-4xl md:text-6xl font-bold text-white">2</span>
+                  <div className="bg-exodus-light-blue rounded-lg p-1.5">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <h3 className="text-lg md:text-2xl font-bold text-white mb-2">
+                  Pass Evaluation
                 </h3>
-                <p className="text-exodus-light-blue text-lg">
-                  Trade your funded account and keep up to 90% of your profits.
+                <p className="text-gray-400 mb-4 text-xs md:text-sm">
+                  Complete the 1-step challenge by hitting the 8% profit target.
                 </p>
+
+                {/* Bullet points */}
+                <ul className="space-y-1.5">
+                  <li className="flex items-start gap-1.5 text-gray-300 text-xs md:text-sm">
+                    <svg className="w-3.5 h-3.5 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>8% profit target</span>
+                  </li>
+                  <li className="flex items-start gap-1.5 text-gray-300 text-xs md:text-sm">
+                    <svg className="w-3.5 h-3.5 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>No time limits</span>
+                  </li>
+                  <li className="flex items-start gap-1.5 text-gray-300 text-xs md:text-sm">
+                    <svg className="w-3.5 h-3.5 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Trader-friendly rules</span>
+                  </li>
+                </ul>
               </div>
-              {/* Arrow - Desktop Right, Mobile Down */}
-              <div className="hidden md:block absolute -right-4 top-1/2 transform -translate-y-1/2 text-exodus-light-blue text-4xl">
-                →
-              </div>
-            </div>
-            {/* Mobile Down Arrow */}
-            <div className="md:hidden flex justify-center -my-4">
-              <svg className="w-12 h-12 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
             </div>
 
-            <div className="scale-[0.6] md:scale-100 origin-top">
-              <div className="bg-exodus-blue/50 backdrop-blur-sm border-2 border-exodus-light-blue rounded-2xl p-8 h-full">
-                <h3 className="text-2xl font-bold text-white mb-3 italic">
-                  UNLIMITED PAYOUTS ON-DEMAND
+            {/* Card 3 - Get Funded (Highlighted) */}
+            <div className="relative">
+              <div className="bg-gradient-to-br from-exodus-light-blue to-blue-600 rounded-lg p-4 md:p-6 h-full shadow-xl shadow-exodus-light-blue/20">
+                {/* Header with label */}
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-blue-100 text-xs font-medium flex items-center gap-1">
+                    Get Real-Money Rewards
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                </div>
+                
+                <div className="flex items-start gap-2 mb-4">
+                  <span className="text-4xl md:text-6xl font-bold text-white opacity-40">3</span>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-lg p-1.5">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <h3 className="text-lg md:text-2xl font-bold text-white mb-2">
+                  Exodus Account
                 </h3>
-                <p className="text-exodus-light-blue text-lg">
-                  Withdraw your profits anytime.
+                <p className="text-blue-50 mb-4 text-xs md:text-sm">
+                  Pass the Exodus Challenge and progress toward the Funded Account.
                 </p>
+
+                {/* Bullet points */}
+                <ul className="space-y-1.5">
+                  <li className="flex items-start gap-1.5 text-white text-xs md:text-sm">
+                    <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Up to 90% profit share</span>
+                  </li>
+                  <li className="flex items-start gap-1.5 text-white text-xs md:text-sm">
+                    <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Up to $200,000 account</span>
+                  </li>
+                  <li className="flex items-start gap-1.5 text-white text-xs md:text-sm">
+                    <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>On-demand payouts</span>
+                  </li>
+                  <li className="flex items-start gap-1.5 text-white text-xs md:text-sm">
+                    <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Account scaling available</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
@@ -908,6 +1026,59 @@ export default function Home() {
                 <div className="flex items-start gap-2">
                   <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
                   <span className="text-sm md:text-base">No time limits to pass</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Platform Support Section */}
+          <div className="mt-16 md:mt-20">
+            <div className="max-w-6xl mx-auto">
+              {/* Mobile Layout */}
+              <div className="md:hidden flex flex-col items-center gap-8">
+                {/* Platform Image */}
+                <div className="w-full px-4">
+                  <Image
+                    src="/platforms.png"
+                    alt="Trading Platforms - MT4, MT5, cTrader, DXtrade"
+                    width={600}
+                    height={600}
+                    className="w-full h-auto object-contain"
+                  />
+                </div>
+
+                {/* Text Content */}
+                <div className="text-center px-4">
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    We Support Major Platforms
+                  </h3>
+                  <p className="text-gray-300 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+                    At Exodus, we want to give you options. That's why we offer the flexibility to tailor your experience and choose between MT4 and MT5. Pick the professional trading platform that suits you best.
+                  </p>
+                </div>
+              </div>
+
+              {/* Desktop Layout */}
+              <div className="hidden md:grid md:grid-cols-2 gap-16 items-center">
+                {/* Left - Text Content */}
+                <div>
+                  <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+                    We Support Major Platforms
+                  </h3>
+                  <p className="text-gray-300 text-base leading-relaxed mb-6">
+                    At Exodus, we want to give you options. That's why we offer the flexibility to tailor your experience and choose between MT4 and MT5. Pick the professional trading platform that suits you best.
+                  </p>
+                </div>
+
+                {/* Right - Platform Image */}
+                <div className="w-full">
+                  <Image
+                    src="/platforms.png"
+                    alt="Trading Platforms - MT4, MT5, cTrader, DXtrade"
+                    width={800}
+                    height={800}
+                    className="w-full h-auto object-contain"
+                  />
                 </div>
               </div>
             </div>
