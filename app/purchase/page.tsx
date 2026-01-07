@@ -13,6 +13,7 @@ export default function PurchasePage() {
   const [selectedAccount, setSelectedAccount] = useState(0);
   const [showPayment, setShowPayment] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<"MT4" | "MT5">("MT4"); // Default to MT4
+  const [selectedPlanType, setSelectedPlanType] = useState<"onestep" | "elite">("onestep");
   const [formData, setFormData] = useState({
     // Billing Info
     firstName: "",
@@ -30,12 +31,24 @@ export default function PurchasePage() {
     agreeRefundPolicy: false,
   });
 
-  const accounts = [
-    { size: "$25,000", price: 247, label: "25K", planId: "plan_FyRDLrDEd8ilp" },
-    { size: "$50,000", price: 399, label: "50K", planId: "plan_XB7LYZSLzaljt" },
-    { size: "$100,000", price: 699, label: "100K", planId: "plan_JJ9nO8LMXVsCD" },
-    { size: "$200,000", price: 1499, label: "200K", planId: "plan_mDL1lFqScmlUK" },
-  ];
+  const accountConfigs = {
+    onestep: [
+      { size: "$10,000", price: 109, label: "10K", planId: "plan_ngeGzBF830xlL" },
+      { size: "$25,000", price: 247, label: "25K", planId: "plan_FyRDLrDEd8ilp" },
+      { size: "$50,000", price: 399, label: "50K", planId: "plan_XB7LYZSLzaljt" },
+      { size: "$100,000", price: 699, label: "100K", planId: "plan_JJ9nO8LMXVsCD" },
+      { size: "$200,000", price: 1499, label: "200K", planId: "plan_mDL1lFqScmlUK" },
+    ],
+    elite: [
+      { size: "$10,000", price: 209, label: "10K", planId: "plan_TQL10iopYwgY5" },
+      { size: "$25,000", price: 599, label: "25K", planId: "plan_unGvM5aTCqyU4" },
+      { size: "$50,000", price: 799, label: "50K", planId: "plan_Mc0eXyrWMsN6w" },
+      { size: "$100,000", price: 1299, label: "100K", planId: "plan_kfWFgzIVfrJ5d" },
+      { size: "$200,000", price: 2599, label: "200K", planId: "plan_QtVFJl2muh80m" },
+    ]
+  };
+
+  const accounts = accountConfigs[selectedPlanType];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -84,7 +97,7 @@ export default function PurchasePage() {
 
     // Store challenge data in sessionStorage for the payment page
     const challengeData = {
-      type: '1-Step',
+      type: selectedPlanType === 'onestep' ? '1-Step' : 'Elite',
       amount: accounts[selectedAccount].size,
       platform: selectedPlatform,
       formData: {
@@ -174,7 +187,7 @@ export default function PurchasePage() {
         await createTradingAccount({
           userId,
           accountSize: accounts[selectedAccount].size,
-          accountType: "1-Step",
+          accountType: selectedPlanType === 'onestep' ? "1-Step" : "Elite",
           platform: selectedPlatform as "MT4" | "MT5",
           planId,
           receiptId: receiptId || "N/A",
@@ -223,7 +236,7 @@ export default function PurchasePage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-exodus-blue via-exodus-blue to-exodus-dark relative overflow-hidden">
+    <main className="min-h-screen bg-exodus-dark relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-20 left-10 w-72 h-72 bg-exodus-light-blue rounded-full blur-3xl"></div>
@@ -257,7 +270,15 @@ export default function PurchasePage() {
             {/* Card 1: Billing Information */}
             <div className="space-y-6">
               {/* Billing Info Section */}
-              <div className="bg-white/10 backdrop-blur-lg border-2 border-exodus-light-blue rounded-2xl p-5 md:p-8 shadow-2xl">
+              <div 
+                className="rounded-2xl p-5 md:p-8 shadow-2xl"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                  borderWidth: '2px',
+                  borderStyle: 'solid',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                }}
+              >
                 <h2 className="text-xl md:text-2xl font-bold text-white mb-5 md:mb-6 flex items-center gap-2">
                   <span className="bg-exodus-light-blue w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
                   Billing Information
@@ -276,7 +297,8 @@ export default function PurchasePage() {
                         value={formData.firstName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-2.5 md:py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-exodus-light-blue transition text-sm md:text-base"
+                        className="w-full px-4 py-2.5 md:py-3 rounded-lg border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-exodus-light-blue transition text-sm md:text-base"
+                        style={{ backgroundColor: 'color-mix(in oklab, white 5%, transparent)' }}
                         placeholder="John"
                       />
                     </div>
@@ -291,7 +313,8 @@ export default function PurchasePage() {
                         value={formData.lastName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-2.5 md:py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-exodus-light-blue transition text-sm md:text-base"
+                        className="w-full px-4 py-2.5 md:py-3 rounded-lg border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-exodus-light-blue transition text-sm md:text-base"
+                        style={{ backgroundColor: 'color-mix(in oklab, white 5%, transparent)' }}
                         placeholder="Doe"
                       />
                     </div>
@@ -316,7 +339,15 @@ export default function PurchasePage() {
               </div>
 
               {/* Billing Address Section */}
-              <div className="bg-white/10 backdrop-blur-lg border-2 border-exodus-light-blue rounded-2xl p-5 md:p-8 shadow-2xl">
+              <div 
+                className="rounded-2xl p-5 md:p-8 shadow-2xl"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                  borderWidth: '2px',
+                  borderStyle: 'solid',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                }}
+              >
                 <h2 className="text-xl md:text-2xl font-bold text-white mb-5 md:mb-6 flex items-center gap-2">
                   <span className="bg-exodus-light-blue w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
                   Billing Address
@@ -351,7 +382,8 @@ export default function PurchasePage() {
                         value={formData.city}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-2.5 md:py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-exodus-light-blue transition text-sm md:text-base"
+                        className="w-full px-4 py-2.5 md:py-3 rounded-lg border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-exodus-light-blue transition text-sm md:text-base"
+                        style={{ backgroundColor: 'color-mix(in oklab, white 5%, transparent)' }}
                         placeholder="New York"
                       />
                     </div>
@@ -366,7 +398,8 @@ export default function PurchasePage() {
                         value={formData.state}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-2.5 md:py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-exodus-light-blue transition text-sm md:text-base"
+                        className="w-full px-4 py-2.5 md:py-3 rounded-lg border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-exodus-light-blue transition text-sm md:text-base"
+                        style={{ backgroundColor: 'color-mix(in oklab, white 5%, transparent)' }}
                         placeholder="NY"
                       />
                     </div>
@@ -404,7 +437,8 @@ export default function PurchasePage() {
                         value={formData.postalCode}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-2.5 md:py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-exodus-light-blue transition text-sm md:text-base"
+                        className="w-full px-4 py-2.5 md:py-3 rounded-lg border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-exodus-light-blue transition text-sm md:text-base"
+                        style={{ backgroundColor: 'color-mix(in oklab, white 5%, transparent)' }}
                         placeholder="10001"
                       />
                     </div>
@@ -415,19 +449,54 @@ export default function PurchasePage() {
 
             {/* Card 2: Order Information */}
             <div className="space-y-6">
-              <div className="bg-white/10 backdrop-blur-lg border-2 border-exodus-light-blue rounded-2xl p-5 md:p-8 shadow-2xl">
+              <div 
+                className="rounded-2xl p-5 md:p-8 shadow-2xl"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                  borderWidth: '2px',
+                  borderStyle: 'solid',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                }}
+              >
                 <h2 className="text-xl md:text-2xl font-bold text-white mb-5 md:mb-6 flex items-center gap-2">
                   <span className="bg-exodus-light-blue w-8 h-8 rounded-full flex items-center justify-center text-sm">3</span>
                   Order Information
                 </h2>
 
-                {/* Account Type */}
+                {/* Plan Type Selection */}
                 <div className="mb-6">
                   <label className="block text-white text-sm font-semibold mb-3">
-                    Account Type
+                    Plan Type *
                   </label>
-                  <div className="bg-exodus-dark/50 border border-exodus-light-blue rounded-lg px-4 py-3 text-white font-semibold">
-                    1-Step Evaluation
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPlanType("onestep")}
+                      className={`px-4 py-3 rounded-lg font-bold transition border-2 ${
+                        selectedPlanType === "onestep"
+                          ? "bg-exodus-light-blue border-exodus-light-blue text-white shadow-lg shadow-exodus-light-blue/30"
+                          : "border-white/20 text-white hover:border-exodus-light-blue/50"
+                      }`}
+                      style={{
+                        backgroundColor: selectedPlanType === "onestep" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
+                      }}
+                    >
+                      Exodus 1-Step
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPlanType("elite")}
+                      className={`px-4 py-3 rounded-lg font-bold transition border-2 ${
+                        selectedPlanType === "elite"
+                          ? "bg-exodus-light-blue border-exodus-light-blue text-white shadow-lg shadow-exodus-light-blue/30"
+                          : "border-white/20 text-white hover:border-exodus-light-blue/50"
+                      }`}
+                      style={{
+                        backgroundColor: selectedPlanType === "elite" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
+                      }}
+                    >
+                      Exodus Elite
+                    </button>
                   </div>
                 </div>
 
@@ -443,8 +512,11 @@ export default function PurchasePage() {
                       className={`px-4 py-3 rounded-lg font-bold transition border-2 ${
                         selectedPlatform === "MT4"
                           ? "bg-exodus-light-blue border-exodus-light-blue text-white shadow-lg shadow-exodus-light-blue/30"
-                          : "bg-white/10 border-white/20 text-white hover:border-exodus-light-blue/50"
+                          : "border-white/20 text-white hover:border-exodus-light-blue/50"
                       }`}
+                      style={{
+                        backgroundColor: selectedPlatform === "MT4" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
+                      }}
                     >
                       MetaTrader 4
                     </button>
@@ -454,8 +526,11 @@ export default function PurchasePage() {
                       className={`px-4 py-3 rounded-lg font-bold transition border-2 ${
                         selectedPlatform === "MT5"
                           ? "bg-exodus-light-blue border-exodus-light-blue text-white shadow-lg shadow-exodus-light-blue/30"
-                          : "bg-white/10 border-white/20 text-white hover:border-exodus-light-blue/50"
+                          : "border-white/20 text-white hover:border-exodus-light-blue/50"
                       }`}
+                      style={{
+                        backgroundColor: selectedPlatform === "MT5" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
+                      }}
                     >
                       MetaTrader 5
                     </button>
@@ -467,7 +542,7 @@ export default function PurchasePage() {
                   <label className="block text-white text-sm font-semibold mb-3">
                     Account Balance *
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {accounts.map((account, index) => (
                       <button
                         key={index}
@@ -476,8 +551,11 @@ export default function PurchasePage() {
                         className={`px-4 py-3 rounded-lg font-bold transition border-2 ${
                           index === selectedAccount
                             ? "bg-exodus-light-blue border-exodus-light-blue text-white shadow-lg shadow-exodus-light-blue/30"
-                            : "bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-exodus-light-blue/50"
+                            : "border-white/20 text-white hover:border-exodus-light-blue/50"
                         }`}
+                        style={{
+                          backgroundColor: index === selectedAccount ? undefined : 'color-mix(in oklab, white 5%, transparent)'
+                        }}
                       >
                         <div className="text-lg md:text-xl">{account.label}</div>
                         <div className="text-xs text-gray-300 mt-1">{account.size}</div>
@@ -487,7 +565,15 @@ export default function PurchasePage() {
                 </div>
 
                 {/* Order Summary */}
-                <div className="bg-exodus-dark/50 border border-exodus-light-blue/30 rounded-lg p-4 md:p-5 mb-6">
+                <div 
+                  className="rounded-lg p-4 md:p-5 mb-6"
+                  style={{
+                    backgroundColor: 'color-mix(in oklab, white 3%, transparent)',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                  }}
+                >
                   <h3 className="text-white font-semibold mb-3 text-base md:text-lg">Order Summary</h3>
                   <div className="space-y-2 text-sm md:text-base">
                     <div className="flex justify-between text-gray-300">
@@ -496,7 +582,7 @@ export default function PurchasePage() {
                     </div>
                     <div className="flex justify-between text-gray-300">
                       <span>Evaluation Type:</span>
-                      <span className="text-white font-semibold">1-Step</span>
+                      <span className="text-white font-semibold">{selectedPlanType === 'onestep' ? 'Exodus 1-Step' : 'Exodus Elite'}</span>
                     </div>
                     <div className="border-t border-white/20 my-3"></div>
                     <div className="flex justify-between text-white font-bold text-lg md:text-xl">
@@ -596,7 +682,12 @@ export default function PurchasePage() {
                     <div className="w-full border-t border-white/20"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white/10 text-gray-400">OR</span>
+                    <span 
+                      className="px-4 text-gray-400"
+                      style={{ backgroundColor: 'color-mix(in oklab, white 5%, transparent)' }}
+                    >
+                      OR
+                    </span>
                   </div>
                 </div>
 
@@ -638,12 +729,28 @@ export default function PurchasePage() {
             </button>
 
             {/* Order Summary Card */}
-            <div className="bg-white/10 backdrop-blur-lg border-2 border-exodus-light-blue rounded-2xl p-5 md:p-8 shadow-2xl mb-6">
+            <div 
+              className="rounded-2xl p-5 md:p-8 shadow-2xl mb-6"
+              style={{
+                backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                borderColor: 'color-mix(in oklab, white 8%, transparent)'
+              }}
+            >
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 text-center">
                 Complete Your Payment
               </h2>
               
-              <div className="bg-exodus-dark/50 border border-exodus-light-blue/30 rounded-lg p-4 mb-6">
+              <div 
+                className="rounded-lg p-4 mb-6"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 3%, transparent)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                }}
+              >
                 <div className="space-y-2 text-sm md:text-base">
                   <div className="flex justify-between text-gray-300">
                     <span>Account Size:</span>
@@ -651,7 +758,7 @@ export default function PurchasePage() {
                   </div>
                   <div className="flex justify-between text-gray-300">
                     <span>Evaluation Type:</span>
-                    <span className="text-white font-semibold">1-Step</span>
+                    <span className="text-white font-semibold">{selectedPlanType === 'onestep' ? 'Exodus 1-Step' : 'Exodus Elite'}</span>
                   </div>
                   <div className="flex justify-between text-gray-300">
                     <span>Email:</span>

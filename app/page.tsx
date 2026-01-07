@@ -8,9 +8,9 @@ import { trackViewContent, trackInitiateCheckout } from "@/lib/facebookPixel";
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [openLearnDropdown, setOpenLearnDropdown] = useState(false);
-  const [selectedChallenge, setSelectedChallenge] = useState(0);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showPartnerModal, setShowPartnerModal] = useState(false);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -49,11 +49,85 @@ export default function Home() {
     { pair: "GBP/JPY", price: "189.42", change: "+0.05%" },
   ];
 
-  const challenges = [
-    { size: "$25,000", price: "$247", dailyLoss: "$1,000", maxDrawdown: "$1,500" },
-    { size: "$50,000", price: "$399", dailyLoss: "$2,000", maxDrawdown: "$3,000" },
-    { size: "$100,000", price: "$699", dailyLoss: "$4,000", maxDrawdown: "$6,000" },
-    { size: "$200,000", price: "$1,499", dailyLoss: "$8,000", maxDrawdown: "$12,000" },
+  // Pricing Configuration
+  const [currentPlan, setCurrentPlan] = useState<'onestep' | 'elite'>('onestep');
+  const [selectedMobileAccount, setSelectedMobileAccount] = useState(100000);
+
+  const challengeConfigs = {
+    onestep: {
+      name: "Exodus 1-Step",
+      accounts: [10000, 25000, 50000, 100000, 200000] as const,
+      prices: { 10000: 109, 25000: 247, 50000: 399, 100000: 699, 200000: 1499 } as Record<number, number>,
+      profitTarget: "8%",
+      maxDailyLoss: "4%",
+      maxDrawdown: "6% (Static)",
+      leverage: "Up to 1:100",
+      minTradingDays: "No minimum"
+    },
+    elite: {
+      name: "Exodus Elite",
+      accounts: [10000, 25000, 50000, 100000, 200000] as const,
+      prices: { 10000: 209, 25000: 599, 50000: 799, 100000: 1299, 200000: 2599 } as Record<number, number>,
+      profitTarget: "10%",
+      maxDailyLoss: "10% (Trailing EOD)",
+      maxDrawdown: "None",
+      leverage: "Up to 1:100",
+      minTradingDays: "No minimum"
+    }
+  };
+
+  const currentConfig = challengeConfigs[currentPlan];
+  const bestValueIndex = 2; // 100k is best value
+
+  const pricingFeatures = [
+    { 
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="6" />
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+      ), 
+      label: 'Profit Target',
+      getValue: () => currentConfig.profitTarget
+    },
+    { 
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 5v14M5 12l7 7 7-7" />
+        </svg>
+      ), 
+      label: 'Max. Daily Loss', 
+      getValue: () => currentConfig.maxDailyLoss 
+    },
+    { 
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 5v14M8 15l4 4 4-4" />
+        </svg>
+      ), 
+      label: 'Max. Drawdown', 
+      getValue: () => currentConfig.maxDrawdown 
+    },
+    { 
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg>
+      ), 
+      label: 'Min. trading days', 
+      getValue: () => currentConfig.minTradingDays 
+    },
+    { 
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M3 12h18M12 3v18" />
+        </svg>
+      ), 
+      label: 'Leverage', 
+      getValue: () => currentConfig.leverage 
+    }
   ];
 
   const faqs = [
@@ -92,7 +166,7 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-exodus-blue/95 backdrop-blur-sm z-50 border-b border-exodus-light-blue/20">
+      <nav className="fixed top-0 w-full bg-white/5 backdrop-blur-md z-50 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 md:h-20">
             <div className="flex items-center gap-4 md:gap-8">
@@ -227,301 +301,372 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-exodus-blue via-exodus-blue to-exodus-dark pt-24 md:pt-32 pb-6 md:pb-40 px-4 overflow-hidden min-h-[100vh] md:min-h-[700px]">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-exodus-light-blue rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
-        </div>
-        
-        <div className="max-w-6xl mx-auto relative z-10 h-full flex flex-col md:block">
-          {/* Mobile Layout */}
-          <div className="md:hidden flex flex-col justify-between h-full">
-            {/* Main Heading */}
-            <div className="text-center pt-4 pb-2">
-              <h1 className="text-2xl font-bold text-white mb-2 leading-tight px-2">
-                Pass a trading test and trade forex{" "}
-                <span className="text-exodus-light-blue">without depositing your own money.</span>
-              </h1>
-            </div>
-
-            {/* iPhone Mockup with Trustpilot Badge */}
-            <div className="flex justify-center items-center flex-shrink-0 relative">
-              {/* Subtle Background Accent Effects */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
-                {/* Top-left soft glow */}
-                <div className="absolute -left-12 top-12 w-40 h-40 bg-exodus-light-blue/10 rounded-full blur-3xl"></div>
-                
-                {/* Right side soft glow */}
-                <div className="absolute -right-12 top-1/3 w-48 h-48 bg-blue-400/8 rounded-full blur-3xl"></div>
-                
-                {/* Bottom-left subtle accent */}
-                <div className="absolute left-8 bottom-16 w-32 h-32 bg-purple-400/8 rounded-full blur-2xl"></div>
-                
-                {/* Center-back subtle highlight */}
-                <div className="absolute inset-x-0 top-1/4 w-56 h-56 mx-auto bg-exodus-light-blue/6 rounded-full blur-3xl"></div>
-              </div>
-              
+      <section
+        className="relative z-10 px-6 pt-24 md:pt-28 pb-12 md:pb-10 text-center overflow-hidden"
+        style={{
+          background: "linear-gradient(to bottom, #000 0%, #000 55%, #091827 100%)"
+        }}
+      >
+        <div className="max-w-5xl mx-auto">
+          
+          {/* Main Hero Image */}
+          <div className="relative mb-6 md:mb-8 md:-mt-[200px] -mt-[75px] md:-mt-[200px]">
+            <div className="relative w-full max-w-4xl mx-auto aspect-[16/9]">
               <Image
-                src="/i-mock.png"
-                alt="Exodus Trading App"
-                width={560}
-                height={1120}
+                src="/exodushero.png"
+                alt="Exodus Trading"
+                fill
+                className="object-contain"
                 priority
-                className="w-auto h-[60vh] max-h-[800px] object-contain drop-shadow-2xl relative z-10"
+                sizes="(max-width: 768px) 100vw, 1200px"
               />
-
-              {/* Trustpilot Badge - Positioned top right */}
-              <a 
-                href="https://www.trustpilot.com/review/exodusprop.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute top-4 right-2 z-20 bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 shadow-xl hover:scale-105 transition-transform duration-300"
-              >
-                <div className="flex flex-col items-center gap-1.5">
-                  {/* Great Text */}
-                  <span className="text-xs font-bold text-white">Great</span>
-                  
-                  {/* Star Rating */}
-                  <div className="w-16">
-                    <Image
-                      src="/stars-4.svg"
-                      alt="4 stars"
-                      width={64}
-                      height={12}
-                      className="w-full h-auto"
-                    />
-                  </div>
-                  
-                  {/* Trustpilot Logo */}
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-[#00B67A]" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                    </svg>
-                    <span className="text-xs font-bold text-white">Trustpilot</span>
-                  </div>
-                </div>
-              </a>
             </div>
+          </div>
 
-            {/* Subheading & CTA */}
-            <div className="text-center">
-              <p className="text-base text-gray-200 mb-3 px-4">
-                Withdraw your profits anytime, on-demand.
-              </p>
+          {/* Title */}
+          <div className="relative -mt-[30px] md:-mt-[150px]">
+            <h1
+              className="text-4xl md:text-6xl lg:text-7xl mb-4 md:mb-6 font-extrabold drop-shadow-[0_4px_24px_rgba(34,211,238,0.45)] bg-gradient-to-b from-cyan-400 via-cyan-300 to-white text-transparent bg-clip-text"
+              style={{
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                backgroundImage: "linear-gradient(to bottom, #22d3ee 10%, #a5f3fc 30%, #fff 100%)"
+              }}
+            >
+              We Monetize <br /> Promising Traders
+            </h1>
+            
+            {/* Description */}
+            <p className="text-gray-300 max-w-3xl mx-auto text-sm md:text-2xl mb-8 md:mb-10">
+              Trade on our simulated platform and earn rewards.
+            </p>
+
+            {/* CTA Button */}
+            <div className="mb-10 md:mb-12">
               <a 
                 href="/purchase" 
                 onClick={() => trackInitiateCheckout()}
-                className="bg-exodus-light-blue hover:bg-blue-400 text-white px-6 py-3 rounded-lg font-semibold text-base transition shadow-lg shadow-exodus-light-blue/30 inline-block mb-3"
+                className="bg-exodus-light-blue hover:bg-blue-400 text-white px-10 md:px-12 py-4 md:py-5 rounded-lg font-semibold text-lg md:text-xl transition shadow-lg shadow-exodus-light-blue/30 inline-block hover:scale-105"
               >
                 START TRADING
               </a>
             </div>
+          </div>
 
-            {/* Live Forex Ticker Slider */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-white/10 overflow-hidden">
-              <div className="flex gap-6 animate-scroll">
-                {[...forexPairs, ...forexPairs].map((item, index) => (
-                  <div key={index} className="flex items-center gap-2 min-w-max text-xs">
-                    <span className={item.change.startsWith('+') ? "text-green-400" : "text-red-400"}>●</span>
-                    <span className="text-gray-300 font-semibold">{item.pair}</span>
-                    <span className="text-white font-bold">{item.price}</span>
-                    <span className={item.change.startsWith('+') ? "text-green-400 text-xs" : "text-red-400 text-xs"}>
-                      {item.change}
-                    </span>
-                  </div>
-                ))}
+          {/* Trustpilot Card */}
+          <div className="max-w-md mx-auto mb-8 md:mb-12 pb-2" style={{ transform: "scale(0.7)" }}>
+            <a 
+              href="https://www.trustpilot.com/review/exodusprop.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-3 md:gap-4 bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-lg hover:scale-105 transition-transform duration-300"
+            >
+              {/* "Great" Text */}
+              <span className="text-sm md:text-lg font-bold text-white">Great</span>
+              
+              {/* Star Rating */}
+              <div className="w-20 md:w-24">
+                <Image
+                  src="/stars-4.svg"
+                  alt="4 stars"
+                  width={96}
+                  height={18}
+                  className="w-full h-auto"
+                />
+              </div>
+              
+              {/* Trustpilot Logo and Text */}
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-[#00B67A]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                </svg>
+                <span className="text-sm md:text-lg font-bold text-white">Trustpilot</span>
+              </div>
+            </a>
+          </div>
+
+          {/* Feature Cards Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 px-2 md:px-0 mb-10">
+            {/* Card 1 - 1-Step Funding */}
+            <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-white/20 overflow-hidden">
+              {/* Static Background Glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-exodus-light-blue/0 to-exodus-light-blue/0"></div>
+              
+              {/* Icon */}
+              <div className="relative z-10 flex flex-col items-center justify-center h-full space-y-3">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-exodus-light-blue/10 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 md:w-7 md:h-7 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <p className="text-sm md:text-lg font-bold text-white text-center">
+                  1-Step Funding
+                </p>
+              </div>
+            </div>
+
+            {/* Card 2 - Static Drawdowns */}
+            <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-white/20 overflow-hidden">
+              {/* Static Background Glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-exodus-light-blue/0 to-exodus-light-blue/0"></div>
+              
+              {/* Icon */}
+              <div className="relative z-10 flex flex-col items-center justify-center h-full space-y-3">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-exodus-light-blue/10 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 md:w-7 md:h-7 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <p className="text-sm md:text-lg font-bold text-white text-center">
+                  Static Drawdowns
+                </p>
+              </div>
+            </div>
+
+            {/* Card 3 - On Demand Payouts */}
+            <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-white/20 overflow-hidden">
+              {/* Static Background Glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-exodus-light-blue/0 to-exodus-light-blue/0"></div>
+              
+              {/* Icon */}
+              <div className="relative z-10 flex flex-col items-center justify-center h-full space-y-3">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-exodus-light-blue/10 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 md:w-7 md:h-7 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p className="text-sm md:text-lg font-bold text-white text-center">
+                  On Demand Payouts
+                </p>
+              </div>
+            </div>
+
+            {/* Card 4 - 15min Avg Payout */}
+            <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-white/20 overflow-hidden">
+              {/* Static Background Glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-exodus-light-blue/0 to-exodus-light-blue/0"></div>
+              
+              {/* Icon */}
+              <div className="relative z-10 flex flex-col items-center justify-center h-full space-y-3">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-exodus-light-blue/10 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 md:w-7 md:h-7 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p className="text-sm md:text-lg font-bold text-white text-center">
+                  15min Avg Payout
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Desktop Layout */}
-          <div className="hidden md:grid md:grid-cols-2 gap-12 items-center">
-            {/* Left Column - Content */}
-            <div className="text-left">
-              <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight">
-                Pass a trading test and trade forex{" "}
-                <span className="text-exodus-light-blue">without depositing your own money.</span>
-              </h1>
-              <p className="text-xl lg:text-2xl text-gray-200 mb-10">
-                Withdraw your profits anytime, on-demand.
-              </p>
-              
-              <div className="flex gap-4 mb-12">
-                <a 
-                  href="/purchase" 
-                  onClick={() => trackInitiateCheckout()}
-                  className="bg-exodus-light-blue hover:bg-blue-400 text-white px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg shadow-exodus-light-blue/30 inline-block"
-                >
-                  START TRADING
-                </a>
-              </div>
+        
+        </div>
+      </section>
 
-              {/* Live Forex Ticker Slider - Desktop */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10 overflow-hidden">
-                <div className="flex gap-8 animate-scroll">
-                  {[...forexPairs, ...forexPairs].map((item, index) => (
-                    <div key={index} className="flex items-center gap-3 min-w-max text-base">
-                      <span className={item.change.startsWith('+') ? "text-green-400" : "text-red-400"}>●</span>
-                      <span className="text-gray-300 font-semibold">{item.pair}</span>
-                      <span className="text-white font-bold">{item.price}</span>
-                      <span className={item.change.startsWith('+') ? "text-green-400 text-sm" : "text-red-400 text-sm"}>
-                        {item.change}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Trustpilot Badge - Desktop Only (Horizontal) */}
-              <a 
-                href="https://www.trustpilot.com/review/exodusprop.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/20 shadow-lg hover:scale-105 transition-transform duration-300 inline-flex items-center justify-center gap-3"
-              >
-                {/* "Great" Text */}
-                <span className="text-sm font-bold text-white">Great</span>
-                
-                {/* Star Rating */}
-                <div className="w-20">
+        {/* Partnership Banner */}
+        <section className="py-4 md:py-6 px-2 md:px-4 bg-exodus-dark">
+          <div className="max-w-6xl mx-auto">
+            {/* 3 Divs in Row Layout (horizontal on all widths) */}
+            <div
+              className="rounded-2xl"
+              style={{
+                backgroundColor: 'color-mix(in oklab, white 3%, transparent)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'color-mix(in oklab, white 8%, transparent)'
+              }}
+            >
+              <div className="flex flex-row md:grid md:grid-cols-3 gap-2 md:gap-8 items-center justify-center">
+                {/* Div 1 - Exodus Logo */}
+                <div className="flex items-center justify-center h-[60px] w-[60px] md:w-auto md:h-[100px]">
                   <Image
-                    src="/stars-4.svg"
-                    alt="4 stars"
-                    width={80}
-                    height={15}
-                    className="w-full h-auto"
+                    src="/exodus.png"
+                    alt="Exodus"
+                    width={48}
+                    height={48}
+                    className="w-10 h-10 md:w-20 md:h-20 object-contain drop-shadow-lg"
                   />
                 </div>
-                
-                {/* Trustpilot Logo and Text */}
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#00B67A]" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                  </svg>
-                  <span className="text-sm font-bold text-white">Trustpilot</span>
+
+                {/* Div 2 - Whop Logo */}
+                <div className="flex items-center justify-center h-[60px] w-[70px] md:w-auto md:h-[100px]">
+                  <Image
+                    src="/whop.png"
+                    alt="Whop"
+                    width={60}
+                    height={36}
+                    className="w-16 h-8 md:w-32 md:h-20 object-contain drop-shadow-lg"
+                  />
                 </div>
-              </a>
-            </div>
 
-            {/* Right Column - Desktop Mockup with Trustpilot Badge */}
-            <div className="flex justify-center items-center relative -mr-12 lg:-mr-20">
-              {/* Subtle Background Accent Effects */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-visible">
-                {/* Top-left soft glow */}
-                <div className="absolute -left-20 top-0 w-96 h-96 bg-exodus-light-blue/8 rounded-full blur-3xl"></div>
-                
-                {/* Right side soft glow */}
-                <div className="absolute -right-20 top-1/3 w-[500px] h-[500px] bg-blue-400/6 rounded-full blur-3xl"></div>
-                
-                {/* Bottom accent */}
-                <div className="absolute left-0 bottom-0 w-80 h-80 bg-purple-400/6 rounded-full blur-3xl"></div>
-              </div>
-              
-              <Image
-                src="/desk-mock.png"
-                alt="Exodus Trading Platform"
-                width={1400}
-                height={900}
-                priority
-                className="w-[140%] max-w-none h-auto object-contain drop-shadow-2xl relative z-10"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Partnership Banner */}
-      <section className="py-8 md:py-12 px-4 bg-gray-50">
-        <div className="max-w-5xl mx-auto">
-          <div className="relative bg-gradient-to-r from-exodus-blue via-exodus-dark to-exodus-blue rounded-3xl p-8 md:p-12 overflow-hidden shadow-2xl">
-            {/* Background Effects */}
-            <div className="absolute inset-0 opacity-20">
-              <div className="absolute top-0 right-0 w-96 h-96 bg-exodus-light-blue rounded-full blur-3xl"></div>
-              <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
-            </div>
-            
-            {/* Content */}
-            <div className="relative z-10 flex items-center justify-center gap-6 md:gap-8">
-              {/* Exodus Logo */}
-              <div className="flex-shrink-0">
-                <Image
-                  src="/exodus.png"
-                  alt="Exodus"
-                  width={96}
-                  height={96}
-                  className="w-20 h-20 md:w-24 md:h-24 object-contain"
-                />
-              </div>
-              
-              {/* Plus Sign */}
-              <div className="text-white text-3xl md:text-5xl font-light">+</div>
-              
-              {/* Whop Logo */}
-              <div className="flex-shrink-0">
-                <Image
-                  src="/whop.png"
-                  alt="Whop"
-                  width={160}
-                  height={96}
-                  className="w-28 h-20 md:w-40 md:h-24 object-contain"
-                />
+                {/* Div 3 - Learn More Button */}
+                <div
+                  className="flex items-center justify-center h-[60px] md:h-[100px] cursor-pointer"
+                  onClick={() => setShowPartnerModal(true)}
+                >
+                  <span className="text-white font-semibold text-[80%] md:text-base flex items-center gap-1 md:gap-2" style={{ fontSize: undefined }}>
+                    Learn More
+                    <svg xmlns="http://www.w3.org/2000/svg" className="inline-block w-3 h-3 md:w-5 md:h-5 text-exodus-light-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+
+        {/* Popup Modal */}
+        {showPartnerModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60" onClick={() => setShowPartnerModal(false)}>
+            <div className="bg-exodus-dark rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setShowPartnerModal(false)}
+                className="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl"
+                aria-label="Close modal"
+              >
+                &times;
+              </button>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="flex flex-row items-center gap-3 mb-2">
+                  <Image
+                    src="/whop.png"
+                    alt="Whop"
+                    width={60}
+                    height={36}
+                    className="w-12 h-8 object-contain"
+                  />
+                  <span className="text-white font-bold text-xl">Powered by Whop</span>
+                </div>
+                <p className="text-gray-200 text-base">
+                  Exodus is powered by <span className="text-exodus-light-blue font-semibold">Whop</span> for payments.
+                </p>
+                <p className="text-gray-300 text-sm">
+                  This allows us to provide lightning fast, secure payments for our traders, so you can access your funds instantly and without hassle.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 px-4 bg-gray-50">
+      {/* Features Section - Bento Box */}
+      <section id="features" className="py-20 px-4 bg-exodus-dark">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl md:text-5xl font-bold text-center text-exodus-blue mb-4">
-            Why Traders Choose <span className="text-exodus-light-blue">Exodus</span>
-          </h2>
-          <p className="text-center text-gray-600 mb-16 text-lg">
-            Trade with confidence using our trader-friendly platform
-          </p>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 px-6 md:px-0">
-            <div className="bg-white p-8 rounded-xl border-t-4 border-exodus-light-blue">
-              <h3 className="text-2xl font-bold text-exodus-dark mb-3">Payouts On-Demand</h3>
-              <p className="text-gray-600">
-                Withdraw your profits anytime, including multiple times per day. All payouts in USDT (Tron).
-              </p>
+          {/* Bento Grid Layout */}
+          <div className="space-y-4 px-4 md:px-0 mb-12">
+            {/* Large Hero Card - Full Width */}
+            <div className="relative bg-gradient-to-br from-exodus-blue via-exodus-blue to-exodus-dark rounded-3xl p-8 md:p-12 lg:p-16 shadow-2xl overflow-hidden group">
+              {/* Background decorative elements */}
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-10 right-10 w-96 h-96 bg-exodus-light-blue rounded-full blur-3xl"></div>
+                <div className="absolute bottom-10 left-10 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+              </div>
+              
+              <div className="relative z-10">
+                <h2 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 md:mb-6">
+                  Why Traders Choose <span className="text-exodus-light-blue">Exodus</span>
+                </h2>
+                <p className="text-lg md:text-2xl text-gray-200 max-w-3xl">
+                  Trade with confidence using our trader-friendly platform
+                </p>
+              </div>
             </div>
 
-            <div className="bg-white p-8 rounded-xl border-t-4 border-exodus-light-blue">
-              <h3 className="text-2xl font-bold text-exodus-dark mb-3">Fast Funding</h3>
-              <p className="text-gray-600">
-                Pass the 1-step evaluation and get funded immediately. No minimum or maximum time limits.
-              </p>
-            </div>
+            {/* Four Cards - Desktop: 1 row, Mobile: 1-2-1 layout */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Card 1 - 1-Step Funding */}
+              <div
+                className="col-span-2 md:col-span-1 rounded-2xl group transition-all duration-300 border border-gray-700/60 hover:border-exodus-light-blue/80 shadow-xl hover:shadow-2xl"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 3%, transparent)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)',
+                }}
+              >
+                <div className="flex flex-col items-start p-6 md:p-8 h-full">
+                  <div className="bg-exodus-light-blue/10 rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center mb-4 group-hover:bg-exodus-light-blue/15 transition-colors">
+                    <svg className="w-6 h-6 md:w-7 md:h-7 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-3">1-Step Funding</h3>
+                  <p className="text-gray-300 text-sm md:text-base">
+                    One evaluation, instant funding - no second phase
+                  </p>
+                </div>
+              </div>
 
-            <div className="bg-white p-8 rounded-xl border-t-4 border-exodus-light-blue">
-              <h3 className="text-2xl font-bold text-exodus-dark mb-3">Trader-Friendly Rules</h3>
-              <p className="text-gray-600">
-                Trade freely without worrying about consistency rules, profit caps, or limitations on your style.
-              </p>
-            </div>
+              {/* Card 2 - Static Drawdowns */}
+              <div
+                className="col-span-1 rounded-2xl group transition-all duration-300 border border-gray-700/60 hover:border-exodus-light-blue/80 shadow-xl hover:shadow-2xl"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 3%, transparent)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)',
+                }}
+              >
+                <div className="flex flex-col items-start p-6 md:p-8 h-full">
+                  <div className="bg-exodus-light-blue/10 rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center mb-4 group-hover:bg-exodus-light-blue/15 transition-colors">
+                    <svg className="w-6 h-6 md:w-7 md:h-7 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-3">Static Drawdowns</h3>
+                  <p className="text-gray-300 text-sm md:text-base">
+                    Non-trailing drawdown for maximum flexibility
+                  </p>
+                </div>
+              </div>
 
-            <div className="bg-white p-8 rounded-xl border-t-4 border-exodus-light-blue">
-              <h3 className="text-2xl font-bold text-exodus-dark mb-3">Elite Trading Environment</h3>
-              <p className="text-gray-600">
-                Access top-tier liquidity from centralized exchanges with tight spreads and deep order books.
-              </p>
-            </div>
+              {/* Card 3 - On Demand Payouts */}
+              <div
+                className="col-span-1 rounded-2xl group transition-all duration-300 border border-gray-700/60 hover:border-exodus-light-blue/80 shadow-xl hover:shadow-2xl"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 3%, transparent)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)',
+                }}
+              >
+                <div className="flex flex-col items-start p-6 md:p-8 h-full">
+                  <div className="bg-exodus-light-blue/10 rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center mb-4 group-hover:bg-exodus-light-blue/15 transition-colors">
+                    <svg className="w-6 h-6 md:w-7 md:h-7 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-3">On Demand Payouts</h3>
+                  <p className="text-gray-300 text-sm md:text-base">
+                    Withdraw anytime, multiple times daily
+                  </p>
+                </div>
+              </div>
 
-            <div className="bg-white p-8 rounded-xl border-t-4 border-exodus-light-blue">
-              <h3 className="text-2xl font-bold text-exodus-dark mb-3">No Deposits</h3>
-              <p className="text-gray-600">
-                Pass the test and we provide the funded capital. You do not need to fund the account yourself.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-xl border-t-4 border-exodus-light-blue">
-              <h3 className="text-2xl font-bold text-exodus-dark mb-3">Unlimited Scaling</h3>
-              <p className="text-gray-600">
-                Scale your account up to higher balances as you prove consistent profitability and trading skill.
-              </p>
+              {/* Card 4 - 15min Avg Payout */}
+              <div
+                className="col-span-2 md:col-span-1 rounded-2xl group transition-all duration-300 border border-gray-700/60 hover:border-exodus-light-blue/80 shadow-xl hover:shadow-2xl"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 3%, transparent)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)',
+                }}
+              >
+                <div className="flex flex-col items-start p-6 md:p-8 h-full">
+                  <div className="bg-exodus-light-blue/10 rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center mb-4 group-hover:bg-exodus-light-blue/15 transition-colors">
+                    <svg className="w-6 h-6 md:w-7 md:h-7 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-3">15min Avg Payout</h3>
+                  <p className="text-gray-300 text-sm md:text-base">
+                    Lightning-fast processing in just 15 minutes
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -538,7 +683,7 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-4 bg-gradient-to-br from-exodus-dark to-exodus-blue">
+      <section className="py-20 px-4 bg-exodus-dark">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-bold text-center text-white mb-4">
             How It Works
@@ -547,10 +692,215 @@ export default function Home() {
             Start earning rewards. All it takes is three focused steps.
           </p>
 
-          <div className="grid md:grid-cols-3 gap-4 md:gap-4 px-6 md:px-0">
+          {/* Mobile: Horizontal Scroll */}
+          <div className="md:hidden relative overflow-hidden -mx-4 mb-8">
+            {/* Gradient overlays for scroll hint */}
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-exodus-dark to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-exodus-dark to-transparent z-10 pointer-events-none"></div>
+            
+            {/* Scrolling Container */}
+            <div className="flex gap-4 overflow-x-auto px-4 pb-4 snap-x snap-mandatory scrollbar-hide">
+              {/* Card 1 */}
+              <div className="flex-shrink-0 w-[85vw] snap-center">
+                <div 
+                  className="rounded-lg p-6 h-full transition-colors"
+                  style={{
+                    backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-gray-500 text-xs font-medium flex items-center gap-1">
+                      Start
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </span>
+                    <div className="text-gray-600 text-2xl">→</div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2 mb-4">
+                    <span className="text-6xl font-bold text-white">1</span>
+                    <div className="bg-exodus-light-blue rounded-lg p-1.5">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    Exodus Challenge
+                  </h3>
+                  <p className="text-gray-400 mb-4 text-sm">
+                    The Exodus Challenge develops trading skills through structured objectives.
+                  </p>
+
+                  <ul className="space-y-1.5 mb-4">
+                    <li className="flex items-start gap-1.5 text-gray-300 text-sm">
+                      <svg className="w-3.5 h-3.5 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>Follow trading objectives</span>
+                    </li>
+                    <li className="flex items-start gap-1.5 text-gray-300 text-sm">
+                      <svg className="w-3.5 h-3.5 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>Prove your trading strategy</span>
+                    </li>
+                  </ul>
+
+                  <a 
+                    href="#pricing"
+                    className="block w-full bg-exodus-light-blue hover:bg-blue-400 text-white text-center py-2 rounded-lg font-semibold transition text-sm"
+                  >
+                    Start Exodus Challenge
+                  </a>
+                </div>
+              </div>
+
+              {/* Card 2 */}
+              <div className="flex-shrink-0 w-[85vw] snap-center">
+                <div 
+                  className="rounded-lg p-6 h-full transition-colors"
+                  style={{
+                    backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-gray-500 text-xs font-medium flex items-center gap-1">
+                      Verify
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </span>
+                    <div className="text-gray-600 text-2xl">→</div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2 mb-4">
+                    <span className="text-6xl font-bold text-white">2</span>
+                    <div className="bg-exodus-light-blue rounded-lg p-1.5">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    Pass Evaluation
+                  </h3>
+                  <p className="text-gray-400 mb-4 text-sm">
+                    Complete the 1-step challenge by hitting the 8% profit target.
+                  </p>
+
+                  <ul className="space-y-1.5">
+                    <li className="flex items-start gap-1.5 text-gray-300 text-sm">
+                      <svg className="w-3.5 h-3.5 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>8% profit target</span>
+                    </li>
+                    <li className="flex items-start gap-1.5 text-gray-300 text-sm">
+                      <svg className="w-3.5 h-3.5 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>No time limits</span>
+                    </li>
+                    <li className="flex items-start gap-1.5 text-gray-300 text-sm">
+                      <svg className="w-3.5 h-3.5 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>Trader-friendly rules</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Card 3 */}
+              <div className="flex-shrink-0 w-[85vw] snap-center">
+                <div 
+                  className="rounded-lg p-6 h-full shadow-xl shadow-exodus-light-blue/20"
+                  style={{
+                    background: 'linear-gradient(to bottom, #4FB8E7 0%, #4FB8E7 3%, color-mix(in oklab, white 4%, transparent) 15%, color-mix(in oklab, white 4%, transparent) 100%)',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-blue-100 text-xs font-medium flex items-center gap-1">
+                      Get Real-Money Rewards
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-start gap-2 mb-4">
+                    <span className="text-6xl font-bold text-white opacity-40">3</span>
+                    <div className="bg-white/20 backdrop-blur-sm rounded-lg p-1.5">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    Exodus Account
+                  </h3>
+                  <p className="text-blue-50 mb-4 text-sm">
+                    Pass the Exodus Challenge and progress toward the Funded Account.
+                  </p>
+
+                  <ul className="space-y-1.5">
+                    <li className="flex items-start gap-1.5 text-white text-sm">
+                      <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>Up to 90% profit share</span>
+                    </li>
+                    <li className="flex items-start gap-1.5 text-white text-sm">
+                      <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>Up to $200,000 account</span>
+                    </li>
+                    <li className="flex items-start gap-1.5 text-white text-sm">
+                      <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>On-demand payouts</span>
+                    </li>
+                    <li className="flex items-start gap-1.5 text-white text-sm">
+                      <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>Account scaling available</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop: Grid Layout */}
+          <div className="hidden md:grid md:grid-cols-3 gap-4 px-6 md:px-0">
             {/* Card 1 - Start */}
             <div className="relative">
-              <div className="bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 h-full border border-gray-800 hover:border-exodus-light-blue/50 transition-colors">
+              <div 
+                className="rounded-lg p-4 md:p-6 h-full transition-colors"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                }}
+              >
                 {/* Header with label */}
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-gray-500 text-xs font-medium flex items-center gap-1">
@@ -607,7 +957,15 @@ export default function Home() {
 
             {/* Card 2 - Verify */}
             <div className="relative">
-              <div className="bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 h-full border border-gray-800 hover:border-exodus-light-blue/50 transition-colors">
+              <div 
+                className="rounded-lg p-4 md:p-6 h-full transition-colors"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                }}
+              >
                 {/* Header with label */}
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-gray-500 text-xs font-medium flex items-center gap-1">
@@ -662,7 +1020,15 @@ export default function Home() {
 
             {/* Card 3 - Get Funded (Highlighted) */}
             <div className="relative">
-              <div className="bg-gradient-to-br from-exodus-light-blue to-blue-600 rounded-lg p-4 md:p-6 h-full shadow-xl shadow-exodus-light-blue/20">
+              <div 
+                className="rounded-lg p-4 md:p-6 h-full shadow-xl shadow-exodus-light-blue/20"
+                style={{
+                  background: 'linear-gradient(to bottom, #4FB8E7 0%, #4FB8E7 3%, color-mix(in oklab, white 4%, transparent) 15%, color-mix(in oklab, white 4%, transparent) 100%)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                }}
+              >
                 {/* Header with label */}
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-blue-100 text-xs font-medium flex items-center gap-1">
@@ -725,267 +1091,237 @@ export default function Home() {
       {/* Pricing Section */}
       <section id="pricing" className="py-20 px-4 bg-exodus-dark">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl md:text-5xl font-bold text-center text-white mb-16">
+          <h2 className="text-2xl md:text-5xl font-bold text-center text-white mb-8">
             Choose Your Account Size
           </h2>
 
-          {/* Account Size Selector */}
-          <div className="flex justify-center mb-12 overflow-x-auto px-2">
-            <div className="inline-flex bg-exodus-blue/30 backdrop-blur-sm border-2 border-exodus-light-blue rounded-xl p-2 gap-2 min-w-max scale-[0.6] md:scale-100">
-              {challenges.map((challenge, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedChallenge(index)}
-                  className={`px-4 md:px-6 py-2 md:py-3 rounded-lg font-bold transition text-sm md:text-base whitespace-nowrap ${
-                    index === selectedChallenge
-                      ? "bg-exodus-light-blue text-white"
-                      : "text-white hover:bg-exodus-blue/50"
-                  }`}
-                >
-                  {challenge.size}
-                </button>
-              ))}
+          {/* Plan Type Selection */}
+          <div className="flex justify-center mb-8">
+            <div className="flex flex-wrap items-center justify-center gap-2 rounded-full border px-3 py-2"
+              style={{
+                backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                borderColor: 'color-mix(in oklab, white 8%, transparent)'
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setCurrentPlan('onestep')}
+                className={`flex items-center justify-center rounded-full text-xs md:text-sm px-3 md:px-5 py-1.5 md:py-2 font-bold transition-all duration-300 ${
+                  currentPlan === 'onestep' 
+                    ? 'bg-exodus-light-blue text-white border border-exodus-light-blue' 
+                    : 'bg-transparent text-white/80 border border-white/20 hover:bg-exodus-light-blue/10'
+                }`}
+              >
+                Exodus 1-Step
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPlan('elite')}
+                className={`flex items-center justify-center rounded-full text-xs md:text-sm px-3 md:px-5 py-1.5 md:py-2 font-bold transition-all duration-300 ${
+                  currentPlan === 'elite' 
+                    ? 'bg-exodus-light-blue text-white border border-exodus-light-blue' 
+                    : 'bg-transparent text-white/80 border border-white/20 hover:bg-exodus-light-blue/10'
+                }`}
+              >
+                Exodus Elite
+              </button>
             </div>
           </div>
 
-          {/* Pricing Table */}
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-exodus-blue/50 backdrop-blur-sm border-2 border-exodus-light-blue rounded-2xl overflow-visible relative">
-              {/* Table Header */}
-              <div className="grid grid-cols-2 border-b-2 border-exodus-light-blue">
-                <div className="p-3 md:p-6 border-r-2 border-exodus-light-blue"></div>
-                <div className="p-3 md:p-6 text-center">
-                  <h3 className="text-xl md:text-3xl font-bold text-white italic">1-STEP</h3>
-                </div>
+          {/* Desktop Layout */}
+          <div className="hidden lg:block max-w-[1400px] mx-auto px-4 overflow-x-auto pt-4">
+            <div className="flex gap-0 min-w-fit">
+              {/* Left Column - Feature Labels */}
+              <div className="flex-shrink-0 w-40 pt-[80px]">
+                {pricingFeatures.map((feature, idx) => (
+                  <div 
+                    key={idx} 
+                    className="h-[44px] flex items-center gap-2 px-2"
+                  >
+                    <span className="text-gray-400">{feature.icon}</span>
+                    <span className="text-white text-[11px] font-medium">{feature.label}</span>
+                  </div>
+                ))}
               </div>
 
-              {/* Table Rows */}
-              <div className="grid grid-cols-2 border-b border-exodus-light-blue/30">
-                <div className="p-3 md:p-6 border-r-2 border-exodus-light-blue bg-exodus-dark/30 relative">
-                  <div className="flex items-center gap-1 md:gap-2">
-                    <p className="text-white font-semibold text-sm md:text-lg">Your Profit Share</p>
-                    <button
-                      onMouseEnter={() => setActiveTooltip('profitShare')}
-                      onMouseLeave={() => setActiveTooltip(null)}
-                      onClick={() => toggleTooltip('profitShare')}
-                      className="text-exodus-light-blue hover:text-blue-300 transition relative shrink-0"
+              {/* Account Cards */}
+              <div className="flex gap-1.5 flex-1 justify-center">
+                {currentConfig.accounts.map((account, cardIndex) => {
+                  const isBestValue = cardIndex === bestValueIndex;
+                  
+                  return (
+                    <div 
+                      key={account} 
+                      className={`flex-shrink-0 w-[140px] relative ${isBestValue ? 'z-10' : ''}`}
                     >
-                      <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      {activeTooltip === 'profitShare' && (
-                        <div className="hidden md:block absolute left-full ml-3 top-1/2 -translate-y-1/2 w-52 bg-white text-exodus-dark p-3 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.profitShare}
+                      {/* Best Value Badge */}
+                      {isBestValue && (
+                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-20">
+                          <div className="bg-exodus-light-blue text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                            Best value
+                          </div>
                         </div>
                       )}
-                      {activeTooltip === 'profitShare' && (
-                        <div className="md:hidden fixed inset-x-4 bottom-20 w-auto bg-white text-exodus-dark p-4 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.profitShare}
+                      
+                      <div 
+                        className={`rounded-lg overflow-hidden ${
+                          isBestValue 
+                            ? 'border-2 border-exodus-light-blue/50' 
+                            : 'border'
+                        }`}
+                        style={{
+                          backgroundColor: isBestValue 
+                            ? 'color-mix(in oklab, white 6%, transparent)' 
+                            : 'color-mix(in oklab, white 4%, transparent)',
+                          borderColor: isBestValue 
+                            ? undefined 
+                            : 'color-mix(in oklab, white 8%, transparent)'
+                        }}
+                      >
+                        {/* Account Size Header */}
+                        <div className={`p-3 text-center ${isBestValue ? 'pt-4' : ''}`}>
+                          <div className="text-gray-400 text-[9px] font-medium mb-0.5">Account</div>
+                          <div className="text-white text-lg font-bold">
+                            ${account >= 1000 ? `${account / 1000}K` : account}
+                          </div>
                         </div>
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="p-3 md:p-6 text-center">
-                  <p className="text-white font-bold text-sm md:text-lg">Up to 90%</p>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 border-b border-exodus-light-blue/30">
-                <div className="p-3 md:p-6 border-r-2 border-exodus-light-blue bg-exodus-dark/30 relative">
-                  <div className="flex items-center gap-1 md:gap-2">
-                    <p className="text-white font-semibold text-sm md:text-lg">Step 1 Goal</p>
-                    <button
-                      onMouseEnter={() => setActiveTooltip('step1Goal')}
-                      onMouseLeave={() => setActiveTooltip(null)}
-                      onClick={() => toggleTooltip('step1Goal')}
-                      className="text-exodus-light-blue hover:text-blue-300 transition relative shrink-0"
-                    >
-                      <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      {activeTooltip === 'step1Goal' && (
-                        <div className="hidden md:block absolute left-full ml-3 top-1/2 -translate-y-1/2 w-52 bg-white text-exodus-dark p-3 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.step1Goal}
+                        {/* Feature Values */}
+                        <div className="flex flex-col">
+                          {pricingFeatures.map((feature, idx) => {
+                            const value = feature.getValue();
+                            
+                            return (
+                              <div 
+                                key={idx} 
+                                className="h-[44px] flex items-center justify-center px-1.5"
+                                style={{
+                                  borderTop: '1px solid',
+                                  borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                                }}
+                              >
+                                <span className="text-white text-[11px] font-medium text-center">{value}</span>
+                              </div>
+                            );
+                          })}
                         </div>
-                      )}
-                      {activeTooltip === 'step1Goal' && (
-                        <div className="md:hidden fixed inset-x-4 bottom-20 w-auto bg-white text-exodus-dark p-4 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.step1Goal}
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="p-3 md:p-6 text-center">
-                  <p className="text-white font-bold text-sm md:text-lg">8%</p>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 border-b border-exodus-light-blue/30">
-                <div className="p-3 md:p-6 border-r-2 border-exodus-light-blue bg-exodus-dark/30 relative">
-                  <div className="flex items-center gap-1 md:gap-2">
-                    <p className="text-white font-semibold text-sm md:text-lg">Step 2 Goal</p>
-                    <button
-                      onMouseEnter={() => setActiveTooltip('step2Goal')}
-                      onMouseLeave={() => setActiveTooltip(null)}
-                      onClick={() => toggleTooltip('step2Goal')}
-                      className="text-exodus-light-blue hover:text-blue-300 transition relative shrink-0"
-                    >
-                      <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      {activeTooltip === 'step2Goal' && (
-                        <div className="hidden md:block absolute left-full ml-3 top-1/2 -translate-y-1/2 w-52 bg-white text-exodus-dark p-3 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.step2Goal}
+                        {/* Pricing */}
+                        <div 
+                          className="p-3 pt-2"
+                          style={{
+                            borderTop: '1px solid',
+                            borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                          }}
+                        >
+                          <div className="flex items-center justify-center gap-1.5 mb-3">
+                            <span className="text-exodus-light-blue text-lg font-bold">${currentConfig.prices[account]}</span>
+                          </div>
+                          
+                          <button
+                            onClick={() => {
+                              trackInitiateCheckout();
+                              window.location.href = '/purchase';
+                            }}
+                            className="w-full bg-exodus-light-blue hover:bg-blue-400 text-white font-bold py-1.5 px-2 rounded-md transition-all duration-300 hover:scale-105 text-xs"
+                          >
+                            Start now
+                          </button>
                         </div>
-                      )}
-                      {activeTooltip === 'step2Goal' && (
-                        <div className="md:hidden fixed inset-x-4 bottom-20 w-auto bg-white text-exodus-dark p-4 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.step2Goal}
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="p-3 md:p-6 text-center">
-                  <p className="text-white font-bold text-sm md:text-lg">–</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 border-b border-exodus-light-blue/30">
-                <div className="p-3 md:p-6 border-r-2 border-exodus-light-blue bg-exodus-dark/30 relative">
-                  <div className="flex items-center gap-1 md:gap-2">
-                    <p className="text-white font-semibold text-sm md:text-lg">Max. daily loss</p>
-                    <button
-                      onMouseEnter={() => setActiveTooltip('dailyLoss')}
-                      onMouseLeave={() => setActiveTooltip(null)}
-                      onClick={() => toggleTooltip('dailyLoss')}
-                      className="text-exodus-light-blue hover:text-blue-300 transition relative shrink-0"
-                    >
-                      <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      {activeTooltip === 'dailyLoss' && (
-                        <div className="hidden md:block absolute left-full ml-3 top-1/2 -translate-y-1/2 w-52 bg-white text-exodus-dark p-3 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.dailyLoss}
-                        </div>
-                      )}
-                      {activeTooltip === 'dailyLoss' && (
-                        <div className="md:hidden fixed inset-x-4 bottom-20 w-auto bg-white text-exodus-dark p-4 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.dailyLoss}
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="p-3 md:p-6 text-center">
-                  <p className="text-white font-bold text-sm md:text-lg">4% ({challenges[selectedChallenge].dailyLoss})</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 border-b border-exodus-light-blue/30">
-                <div className="p-3 md:p-6 border-r-2 border-exodus-light-blue bg-exodus-dark/30 relative">
-                  <div className="flex items-center gap-1 md:gap-2">
-                    <p className="text-white font-semibold text-sm md:text-lg">Max. drawdown (Static)</p>
-                    <button
-                      onMouseEnter={() => setActiveTooltip('maxDrawdown')}
-                      onMouseLeave={() => setActiveTooltip(null)}
-                      onClick={() => toggleTooltip('maxDrawdown')}
-                      className="text-exodus-light-blue hover:text-blue-300 transition relative shrink-0"
-                    >
-                      <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      {activeTooltip === 'maxDrawdown' && (
-                        <div className="hidden md:block absolute left-full ml-3 top-1/2 -translate-y-1/2 w-64 bg-white text-exodus-dark p-3 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.maxDrawdown}
-                        </div>
-                      )}
-                      {activeTooltip === 'maxDrawdown' && (
-                        <div className="md:hidden fixed inset-x-4 bottom-20 w-auto bg-white text-exodus-dark p-4 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed max-h-[60vh] overflow-y-auto">
-                          {tooltips.maxDrawdown}
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="p-3 md:p-6 text-center">
-                  <p className="text-white font-bold text-sm md:text-lg">6% ({challenges[selectedChallenge].maxDrawdown})</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 border-b border-exodus-light-blue/30">
-                <div className="p-3 md:p-6 border-r-2 border-exodus-light-blue bg-exodus-dark/30 relative">
-                  <div className="flex items-center gap-1 md:gap-2">
-                    <p className="text-white font-semibold text-sm md:text-lg">Leverage</p>
-                    <button
-                      onMouseEnter={() => setActiveTooltip('leverage')}
-                      onMouseLeave={() => setActiveTooltip(null)}
-                      onClick={() => toggleTooltip('leverage')}
-                      className="text-exodus-light-blue hover:text-blue-300 transition relative shrink-0"
-                    >
-                      <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      {activeTooltip === 'leverage' && (
-                        <div className="hidden md:block absolute left-full ml-3 top-1/2 -translate-y-1/2 w-52 bg-white text-exodus-dark p-3 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.leverage}
-                        </div>
-                      )}
-                      {activeTooltip === 'leverage' && (
-                        <div className="md:hidden fixed inset-x-4 bottom-20 w-auto bg-white text-exodus-dark p-4 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.leverage}
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="p-3 md:p-6 text-center">
-                  <p className="text-white font-bold text-sm md:text-lg">Up to 1:100</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2">
-                <div className="p-3 md:p-6 border-r-2 border-exodus-light-blue bg-exodus-dark/30 relative">
-                  <div className="flex items-center gap-1 md:gap-2">
-                    <p className="text-white font-semibold text-sm md:text-lg">Evaluation fee</p>
-                    <button
-                      onMouseEnter={() => setActiveTooltip('evaluationFee')}
-                      onMouseLeave={() => setActiveTooltip(null)}
-                      onClick={() => toggleTooltip('evaluationFee')}
-                      className="text-exodus-light-blue hover:text-blue-300 transition relative shrink-0"
-                    >
-                      <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      {activeTooltip === 'evaluationFee' && (
-                        <div className="hidden md:block absolute left-full ml-3 top-1/2 -translate-y-1/2 w-52 bg-white text-exodus-dark p-3 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.evaluationFee}
-                        </div>
-                      )}
-                      {activeTooltip === 'evaluationFee' && (
-                        <div className="md:hidden fixed inset-x-4 bottom-20 w-auto bg-white text-exodus-dark p-4 rounded-lg shadow-2xl z-[100] text-xs leading-relaxed">
-                          {tooltips.evaluationFee}
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="p-3 md:p-6 text-center">
-                  <p className="text-exodus-light-blue font-bold text-2xl md:text-4xl">{challenges[selectedChallenge].price}</p>
-                </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
+          </div>
 
-            <div className="text-center mt-6 md:mt-8">
-              <a 
-                href="/purchase" 
-                onClick={() => trackInitiateCheckout()}
-                className="bg-exodus-light-blue hover:bg-blue-400 text-white px-8 md:px-12 py-3 md:py-4 rounded-lg font-bold text-base md:text-lg transition shadow-lg shadow-exodus-light-blue/30 w-full md:w-auto inline-block"
+          {/* Mobile Layout */}
+          <div className="lg:hidden px-4">
+            {/* Mobile Account Selector */}
+            <div className="flex justify-center gap-1.5 mb-5 flex-wrap">
+              {currentConfig.accounts.map((account) => (
+                <button
+                  key={account}
+                  onClick={() => setSelectedMobileAccount(account)}
+                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all duration-300 ${
+                    selectedMobileAccount === account
+                      ? 'bg-exodus-light-blue text-white'
+                      : 'text-white border'
+                  }`}
+                  style={{
+                    backgroundColor: selectedMobileAccount === account ? undefined : 'color-mix(in oklab, white 4%, transparent)',
+                    borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                  }}
+                >
+                  ${account >= 1000 ? `${account / 1000}K` : account}
+                </button>
+              ))}
+            </div>
+
+            {/* Mobile Card */}
+            <div className="max-w-sm mx-auto">
+              <div 
+                className="border rounded-xl overflow-hidden"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                  borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                }}
               >
-                START TRADING
-              </a>
+                {/* Header */}
+                <div 
+                  className="p-5 text-center"
+                  style={{
+                    borderBottom: '1px solid',
+                    borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                  }}
+                >
+                  <div className="text-gray-400 text-xs font-medium mb-1">Account</div>
+                  <div className="text-white text-3xl font-bold">${selectedMobileAccount.toLocaleString()}</div>
+                </div>
+
+                {/* Features */}
+                <div className="divide-y" style={{ borderColor: 'color-mix(in oklab, white 8%, transparent)' }}>
+                  {pricingFeatures.map((feature, idx) => {
+                    const value = feature.getValue();
+                    
+                    return (
+                      <div key={idx} className="flex items-center justify-between px-5 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-400">{feature.icon}</span>
+                          <span className="text-white text-sm">{feature.label}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-white text-sm font-medium">{value}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Pricing */}
+                <div 
+                  className="p-5"
+                  style={{
+                    borderTop: '1px solid',
+                    borderColor: 'color-mix(in oklab, white 8%, transparent)'
+                  }}
+                >
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <span className="text-exodus-light-blue text-2xl font-bold">${currentConfig.prices[selectedMobileAccount]}</span>
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      trackInitiateCheckout();
+                      window.location.href = '/purchase';
+                    }}
+                    className="w-full bg-exodus-light-blue hover:bg-blue-400 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 text-base"
+                  >
+                    Start now
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -997,19 +1333,11 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 md:gap-x-12 gap-y-3 md:gap-y-4 text-gray-300 max-w-3xl">
                 <div className="flex items-start gap-2">
                   <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
-                  <span className="text-sm md:text-base">Single-phase (1-step) evaluation only</span>
+                  <span className="text-sm md:text-base">Single-phase (1-step) evaluation</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
-                  <span className="text-sm md:text-base">1:100 Leverage on all pairs</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
-                  <span className="text-sm md:text-base">4% Maximum daily loss limit</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
-                  <span className="text-sm md:text-base">6% Max loss (static, not trailing)</span>
+                  <span className="text-sm md:text-base">Up to 1:100 Leverage on all pairs</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
@@ -1025,7 +1353,15 @@ export default function Home() {
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
+                  <span className="text-sm md:text-base">Up to 90% profit share</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
                   <span className="text-sm md:text-base">No time limits to pass</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
+                  <span className="text-sm md:text-base">Account scaling available</span>
                 </div>
               </div>
             </div>
@@ -1087,16 +1423,16 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-20 px-4 bg-gray-50">
+      <section id="faq" className="py-20 px-4 bg-exodus-dark">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-bold text-center text-exodus-blue mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-center text-white mb-4">
             Rules to Support Traders
           </h2>
-          <p className="text-center text-gray-600 mb-12 text-lg">
+          <p className="text-center text-gray-300 mb-12 text-lg">
             Our rules are clear, consistent, and focus on risk management.
           </p>
 
-          <h3 className="text-3xl font-bold text-center text-exodus-dark mb-8">
+          <h3 className="text-3xl font-bold text-center text-exodus-light-blue mb-8">
             FREQUENTLY ASKED QUESTIONS
           </h3>
 
@@ -1104,13 +1440,13 @@ export default function Home() {
             {faqs.map((faq, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl shadow-md border-2 border-transparent hover:border-exodus-light-blue/30 transition overflow-hidden"
+                className="bg-gray-900 rounded-xl shadow-md border-2 border-gray-800 hover:border-exodus-light-blue/30 transition overflow-hidden"
               >
                 <button
                   onClick={() => toggleFaq(index)}
                   className="w-full px-6 py-5 flex justify-between items-center text-left"
                 >
-                  <span className="font-semibold text-exodus-dark text-lg">
+                  <span className="font-semibold text-white text-lg">
                     {faq.question}
                   </span>
                   <span className="text-exodus-light-blue text-2xl">
@@ -1118,7 +1454,7 @@ export default function Home() {
                   </span>
                 </button>
                 {openFaq === index && (
-                  <div className="px-6 pb-5 text-gray-600">
+                  <div className="px-6 pb-5 text-gray-300">
                     {faq.answer}
                   </div>
                 )}
@@ -1126,14 +1462,14 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mt-12 bg-white rounded-xl shadow-lg p-8 border-l-4 border-exodus-light-blue">
-            <h4 className="text-xl font-bold text-exodus-dark mb-2 italic">
+          <div className="mt-12 bg-gray-900 rounded-xl shadow-lg p-8 border-l-4 border-exodus-light-blue">
+            <h4 className="text-xl font-bold text-white mb-2 italic">
               NEED MORE HELP?
             </h4>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-300 mb-4">
               We have an in-house support team to assist with all inquiries.
             </p>
-            <button className="bg-transparent border-2 border-exodus-light-blue text-exodus-blue hover:bg-exodus-light-blue hover:text-white px-6 py-2 rounded-lg font-semibold transition">
+            <button className="bg-transparent border-2 border-exodus-light-blue text-exodus-light-blue hover:bg-exodus-light-blue hover:text-white px-6 py-2 rounded-lg font-semibold transition">
               CONTACT SUPPORT
             </button>
           </div>
@@ -1141,7 +1477,7 @@ export default function Home() {
       </section>
 
       {/* Community Section */}
-      <section className="py-16 md:py-20 px-4 bg-gradient-to-br from-exodus-blue to-exodus-dark">
+      <section className="py-16 md:py-20 px-4 bg-exodus-dark">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-6 md:gap-8">
             {/* Discord */}
@@ -1306,6 +1642,13 @@ export default function Home() {
         }
         .animate-scroll:hover {
           animation-play-state: paused;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
     </main>
