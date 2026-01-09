@@ -20,7 +20,7 @@ import {
   Copy
 } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 interface CryptoOrder {
   id: string;
@@ -90,13 +90,24 @@ export default function CryptoOrdersPage() {
 
   useEffect(() => {
     // Subscribe to crypto orders collection
-    const q = query(collection(db, 'crypto-orders'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    // Note: We don't use orderBy to avoid issues with missing createdAt fields
+    // We'll sort client-side to handle all cases
+    const cryptoOrdersRef = collection(db, 'crypto-orders');
+    const unsubscribe = onSnapshot(cryptoOrdersRef, (snapshot) => {
       const ordersData: CryptoOrder[] = [];
       snapshot.forEach((doc) => {
         ordersData.push({ id: doc.id, ...doc.data() } as CryptoOrder);
       });
+      // Sort client-side to handle missing createdAt fields
+      ordersData.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA; // desc order
+      });
       setOrders(ordersData);
+      setLoading(false);
+    }, (error) => {
+      console.error('Error fetching crypto orders:', error);
       setLoading(false);
     });
 

@@ -6,7 +6,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { getUser } from "@/lib/auth-helpers";
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { collection, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { 
   CreditCard, 
   RefreshCw,
@@ -24,14 +24,17 @@ import {
 
 interface CardOrder {
   id: string;
-  userId: string;
+  userId?: string;
   email: string;
+  customerName?: string;
   accountSize: string;
   accountPrice: number;
   platform: string;
-  planId: string;
-  receiptId: string;
-  billingInfo: {
+  planId?: string;
+  planType?: string;
+  receiptId?: string;
+  orderId?: string;
+  billingInfo?: {
     firstName: string;
     lastName: string;
     streetAddress: string;
@@ -40,9 +43,11 @@ interface CardOrder {
     country: string;
     postalCode: string;
   };
-  timestamp: string;
+  timestamp?: string;
+  createdAt?: any;
   status: string;
   paymentMethod: string;
+  source?: string; // 'checkout_form', 'whop_webhook', etc.
 }
 
 export default function CardOrdersPage() {
@@ -85,8 +90,10 @@ export default function CardOrdersPage() {
 
   useEffect(() => {
     // Subscribe to purchases collection (card payments)
-    const q = query(collection(db, 'purchases'), orderBy('timestamp', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    // Note: We don't use orderBy to avoid issues with missing timestamp fields
+    // We'll sort client-side to handle all cases
+    const purchasesRef = collection(db, 'purchases');
+    const unsubscribe = onSnapshot(purchasesRef, (snapshot) => {
       const ordersData: CardOrder[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
@@ -95,7 +102,16 @@ export default function CardOrdersPage() {
           ordersData.push({ id: doc.id, ...data } as CardOrder);
         }
       });
+      // Sort client-side to handle missing timestamp fields
+      ordersData.sort((a, b) => {
+        const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+        const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+        return dateB - dateA; // desc order
+      });
       setOrders(ordersData);
+      setLoading(false);
+    }, (error) => {
+      console.error('Error fetching card orders:', error);
       setLoading(false);
     });
 
@@ -139,10 +155,12 @@ export default function CardOrdersPage() {
   };
 
   const filteredOrders = orders.filter(order => {
+    const customerName = order.customerName || 
+      (order.billingInfo ? `${order.billingInfo.firstName || ''} ${order.billingInfo.lastName || ''}` : '');
+    
     const matchesSearch = 
-      order.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.billingInfo.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.billingInfo.lastName.toLowerCase().includes(searchTerm.toLowerCase());
+      (order.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customerName.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
 
@@ -265,7 +283,25 @@ export default function CardOrdersPage() {
                   </td>
                 </tr>
               ) : (
-                filteredOrders.map((order) => (
+                filteredOrders.map((order) => {
+                  // Helper to get customer name from various sources
+                  const getCustomerName = () => {
+                    if (order.billingInfo?.firstName) {
+                      return `${order.billingInfo.firstName} ${order.billingInfo.lastName || ''}`.trim();
+                    }
+                    if (order.customerName) return order.customerName;
+                    return order.email?.split('@')[0] || 'N/A';
+                  };
+                  
+                  // Helper to get order date
+                  const getOrderDate = () => {
+                    if (order.timestamp) return new Date(order.timestamp);
+                    if (order.createdAt?.toDate) return order.createdAt.toDate();
+                    if (order.createdAt) return new Date(order.createdAt);
+                    return new Date();
+                  };
+                  
+                  return (
                   <>
                     <tr key={order.id} className="border-t border-gray-700/50 hover:bg-gray-700/20">
                       <td className="p-4">
@@ -273,25 +309,40 @@ export default function CardOrdersPage() {
                           <User size={16} className="text-gray-400" />
                           <div>
                             <div className="text-white font-medium">
-                              {order.billingInfo.firstName} {order.billingInfo.lastName}
+                              {getCustomerName()}
                             </div>
                             <div className="text-gray-400 text-xs">{order.email}</div>
+                            {order.source && (
+                              <div className={`text-xs mt-1 ${
+                                order.source === 'whop_webhook' 
+                                  ? 'text-purple-400' 
+                                  : order.source === 'checkout_form'
+                                  ? 'text-blue-400'
+                                  : 'text-gray-500'
+                              }`}>
+                                {order.source === 'whop_webhook' ? '🔔 Webhook' : 
+                                 order.source === 'checkout_form' ? '📝 Form' : ''}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
                       <td className="p-4">
                         <span className="text-white font-semibold">{order.accountSize}</span>
+                        {order.planType && (
+                          <div className="text-gray-400 text-xs">{order.planType}</div>
+                        )}
                       </td>
                       <td className="p-4">
                         <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
-                          {order.platform}
+                          {order.platform || 'N/A'}
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className="text-green-400 font-semibold">${order.accountPrice}</span>
+                        <span className="text-green-400 font-semibold">${order.accountPrice || 0}</span>
                       </td>
                       <td className="p-4 text-gray-300 text-sm">
-                        {new Date(order.timestamp).toLocaleDateString()}
+                        {getOrderDate().toLocaleDateString()}
                       </td>
                       <td className="p-4">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -299,7 +350,7 @@ export default function CardOrdersPage() {
                             ? 'bg-green-500/20 text-green-400'
                             : 'bg-yellow-500/20 text-yellow-400'
                         }`}>
-                          {order.status.toUpperCase()}
+                          {(order.status || 'pending').toUpperCase()}
                         </span>
                       </td>
                       <td className="p-4">
@@ -340,22 +391,26 @@ export default function CardOrdersPage() {
                                   <span className="text-gray-400">Email:</span>
                                   <span className="text-white">{order.email}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <MapPin size={14} className="text-gray-400" />
-                                  <span className="text-gray-400">Address:</span>
-                                  <span className="text-white">
-                                    {order.billingInfo.streetAddress}, {order.billingInfo.city}, {order.billingInfo.state}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <MapPin size={14} className="text-gray-400" />
-                                  <span className="text-gray-400">Country:</span>
-                                  <span className="text-white">{order.billingInfo.country}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-gray-400">Postal Code:</span>
-                                  <span className="text-white">{order.billingInfo.postalCode}</span>
-                                </div>
+                                {order.billingInfo && (
+                                  <>
+                                    <div className="flex items-center gap-2">
+                                      <MapPin size={14} className="text-gray-400" />
+                                      <span className="text-gray-400">Address:</span>
+                                      <span className="text-white">
+                                        {order.billingInfo.streetAddress || 'N/A'}, {order.billingInfo.city || 'N/A'}, {order.billingInfo.state || 'N/A'}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <MapPin size={14} className="text-gray-400" />
+                                      <span className="text-gray-400">Country:</span>
+                                      <span className="text-white">{order.billingInfo.country || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-gray-400">Postal Code:</span>
+                                      <span className="text-white">{order.billingInfo.postalCode || 'N/A'}</span>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             </div>
 
@@ -368,24 +423,38 @@ export default function CardOrdersPage() {
                               <div className="space-y-2 text-sm">
                                 <div>
                                   <span className="text-gray-400">Plan ID:</span>
-                                  <span className="text-white ml-2 font-mono text-xs">{order.planId}</span>
+                                  <span className="text-white ml-2 font-mono text-xs">{order.planId || 'N/A'}</span>
                                 </div>
                                 <div>
-                                  <span className="text-gray-400">Receipt ID:</span>
-                                  <span className="text-white ml-2 font-mono text-xs">{order.receiptId}</span>
+                                  <span className="text-gray-400">Receipt/Order ID:</span>
+                                  <span className="text-white ml-2 font-mono text-xs">{order.receiptId || order.orderId || order.id}</span>
                                 </div>
                                 <div>
                                   <span className="text-gray-400">Payment Method:</span>
                                   <span className="text-white ml-2">Card (Whop)</span>
                                 </div>
+                                {order.userId && (
+                                  <div>
+                                    <span className="text-gray-400">User ID:</span>
+                                    <span className="text-white ml-2 font-mono text-xs">{order.userId.substring(0, 16)}...</span>
+                                  </div>
+                                )}
                                 <div>
-                                  <span className="text-gray-400">User ID:</span>
-                                  <span className="text-white ml-2 font-mono text-xs">{order.userId.substring(0, 16)}...</span>
+                                  <span className="text-gray-400">Source:</span>
+                                  <span className={`ml-2 px-2 py-0.5 rounded text-xs ${
+                                    order.source === 'whop_webhook' 
+                                      ? 'bg-purple-500/20 text-purple-400' 
+                                      : order.source === 'checkout_form'
+                                      ? 'bg-blue-500/20 text-blue-400'
+                                      : 'bg-gray-500/20 text-gray-400'
+                                  }`}>
+                                    {order.source || 'unknown'}
+                                  </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Calendar size={14} className="text-gray-400" />
                                   <span className="text-gray-400">Created:</span>
-                                  <span className="text-white">{new Date(order.timestamp).toLocaleString()}</span>
+                                  <span className="text-white">{getOrderDate().toLocaleString()}</span>
                                 </div>
                               </div>
                             </div>
@@ -394,7 +463,7 @@ export default function CardOrdersPage() {
                       </tr>
                     )}
                   </>
-                ))
+                );})
               )}
             </tbody>
           </table>

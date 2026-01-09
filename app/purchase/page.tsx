@@ -12,6 +12,8 @@ import { trackViewContent, trackInitiateCheckout, trackPurchase } from "@/lib/fa
 export default function PurchasePage() {
   const [selectedAccount, setSelectedAccount] = useState(0);
   const [showPayment, setShowPayment] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<"MT4" | "MT5">("MT4"); // Default to MT4
   const [selectedPlanType, setSelectedPlanType] = useState<"onestep" | "elite">("onestep");
   const [formData, setFormData] = useState({
@@ -81,12 +83,81 @@ export default function PurchasePage() {
     return allFieldsFilled && allCheckboxesChecked;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle "PAY WITH CARD" button - saves order to Firebase FIRST, then shows Whop
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid()) return;
+    if (!isFormValid() || isSubmitting) return;
     
-    // Show Whop payment embed
-    setShowPayment(true);
+    setIsSubmitting(true);
+    
+    try {
+      // Generate a unique order ID for tracking
+      const orderId = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Save pending order to Firebase BEFORE showing payment
+      const orderData = {
+        oderId: orderId,
+        email: formData.email,
+        customerName: `${formData.firstName} ${formData.lastName}`,
+        accountSize: accounts[selectedAccount].size,
+        accountPrice: accounts[selectedAccount].price,
+        platform: selectedPlatform,
+        planType: selectedPlanType === 'onestep' ? '1-Step' : 'Elite',
+        planId: accounts[selectedAccount].planId,
+        billingInfo: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          streetAddress: formData.streetAddress,
+          city: formData.city,
+          state: formData.state,
+          country: formData.country,
+          postalCode: formData.postalCode,
+        },
+        timestamp: new Date().toISOString(),
+        status: 'pending', // Will be updated to 'completed' when Whop payment succeeds
+        paymentMethod: 'card',
+        source: 'checkout_form', // Track that this came from form submission
+      };
+      
+      // Save to Firebase via API (bypasses client security rules)
+      const saveResponse = await fetch('/api/card-orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+      
+      if (!saveResponse.ok) {
+        throw new Error('Failed to save order');
+      }
+      
+      const savedOrder = await saveResponse.json();
+      console.log('[Purchase] Pending order saved:', savedOrder.orderId);
+      setPendingOrderId(savedOrder.orderId);
+      
+      // Send admin notification email about the pending card order
+      try {
+        await fetch('/api/send-card-order-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...orderData,
+            orderId: savedOrder.orderId,
+          })
+        });
+        console.log('[Purchase] Admin notification sent for pending order');
+      } catch (emailError) {
+        console.error('[Purchase] Error sending admin email:', emailError);
+        // Don't block the flow if email fails
+      }
+      
+      // Now show Whop payment embed
+      setShowPayment(true);
+    } catch (error) {
+      console.error('[Purchase] Error saving pending order:', error);
+      alert('There was an error processing your request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCryptoPayment = () => {
@@ -116,11 +187,30 @@ export default function PurchasePage() {
     window.location.href = '/purchase/payment';
   };
 
-
+  // Handle when Whop payment completes successfully
   const handlePaymentComplete = async (planId: string, receiptId?: string) => {
     try {
       // Track successful purchase with Meta Pixel
       trackPurchase(accounts[selectedAccount].price, "USD");
+      
+      // Update the pending order to completed via API
+      if (pendingOrderId) {
+        try {
+          await fetch('/api/card-orders', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: pendingOrderId,
+              status: 'completed',
+              receiptId: receiptId || 'N/A',
+              completedAt: new Date().toISOString(),
+            })
+          });
+          console.log('[Purchase] Order updated to completed:', pendingOrderId);
+        } catch (updateError) {
+          console.error('[Purchase] Error updating order status:', updateError);
+        }
+      }
       
       // Check if user is already authenticated
       const currentUser = auth.currentUser;
@@ -158,7 +248,7 @@ export default function PurchasePage() {
         }
       }
 
-      // Save purchase to Firebase
+      // Save purchase to Firebase (for backward compatibility with existing purchase tracking)
       if (userId) {
         await savePurchase({
           userId,
@@ -220,6 +310,14 @@ export default function PurchasePage() {
       alert("Purchase completed but there was an error setting up your account. Please contact support.");
       window.location.href = "/dashboard";
     }
+  };
+
+  // Handle going back from payment - keep the pending order but allow edits
+  const handleBackToForm = () => {
+    setShowPayment(false);
+    // Note: We keep the pendingOrderId - if user submits again, 
+    // a new order will be created (old one stays as abandoned)
+    setPendingOrderId(null);
   };
 
   const countries = [
@@ -662,14 +760,26 @@ export default function PurchasePage() {
                 {/* Purchase Buttons */}
                 <button
                   type="submit"
-                  disabled={!isFormValid()}
+                  disabled={!isFormValid() || isSubmitting}
                   className={`w-full mt-6 py-3 md:py-4 rounded-lg font-bold text-base md:text-lg transition shadow-lg ${
-                    isFormValid()
+                    isFormValid() && !isSubmitting
                       ? "bg-exodus-light-blue hover:bg-blue-400 text-white shadow-exodus-light-blue/30 cursor-pointer"
                       : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"
                   }`}
                 >
-                  {isFormValid() ? `PAY WITH CARD - $${accounts[selectedAccount].price}` : "COMPLETE ALL FIELDS TO CONTINUE"}
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Processing...
+                    </span>
+                  ) : isFormValid() ? (
+                    `PAY WITH CARD - $${accounts[selectedAccount].price}`
+                  ) : (
+                    "COMPLETE ALL FIELDS TO CONTINUE"
+                  )}
                 </button>
 
                 <p className="text-center text-gray-400 text-xs mt-4">
@@ -719,7 +829,7 @@ export default function PurchasePage() {
           <div className="max-w-3xl mx-auto">
             {/* Back Button */}
             <button
-              onClick={() => setShowPayment(false)}
+              onClick={handleBackToForm}
               className="mb-6 text-white hover:text-exodus-light-blue transition flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -837,4 +947,3 @@ export default function PurchasePage() {
     </main>
   );
 }
-

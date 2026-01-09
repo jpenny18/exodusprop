@@ -1,32 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { getUser } from "@/lib/auth-helpers";
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { Search, UserCheck, UserX, Mail, Calendar, MapPin, Shield, Loader2, Trash2, Edit2 } from 'lucide-react';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { Search, UserCheck, Mail, Calendar, MapPin, Shield, Loader2, Trash2, Edit2, RefreshCw, AlertTriangle, Database, CheckCircle } from 'lucide-react';
 
 interface User {
   id: string;
   email: string;
   displayName?: string;
   country?: string;
-  createdAt: any;
+  createdAt: string | null;
   isAdmin?: boolean;
   requiresPasswordChange?: boolean;
+  kycStatus?: string;
+  accounts?: string[];
+  hasFirestoreDoc?: boolean;
+  lastSignIn?: string;
 }
 
 export default function AdminUsersPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState<'all' | 'admin' | 'users'>('all');
+  const [filter, setFilter] = useState<'all' | 'admin' | 'users' | 'missing'>('all');
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [syncStats, setSyncStats] = useState<{
+    authCount: number;
+    firestoreCount: number;
+    missingFirestoreDocs: number;
+  } | null>(null);
 
   const adminNavItems = [
     { name: "Admin Dashboard", href: "/admin", icon: (<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" /></svg>) },
@@ -40,6 +51,103 @@ export default function AdminUsersPage() {
     { name: "Settings", href: "/admin/settings", icon: (<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>) },
   ];
 
+  // Fetch users from API (uses Admin SDK - bypasses security rules)
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('[AdminUsers] Fetching users from API...');
+      const response = await fetch('/api/admin/users');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('[AdminUsers] Received', data.total, 'users from API');
+      console.log('[AdminUsers] Auth users:', data.authCount, 'Firestore docs:', data.firestoreCount);
+      
+      if (data.users) {
+        setUsers(data.users);
+        setSyncStats({
+          authCount: data.authCount,
+          firestoreCount: data.firestoreCount,
+          missingFirestoreDocs: data.missingFirestoreDocs
+        });
+      } else {
+        throw new Error('No users data in response');
+      }
+    } catch (err: any) {
+      console.error('[AdminUsers] Error fetching users:', err);
+      setError(err.message || 'Failed to fetch users');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Sync missing Firestore documents
+  const syncMissingDocs = async () => {
+    if (!confirm('This will create Firestore documents for all Auth users that are missing them. Continue?')) {
+      return;
+    }
+    
+    setSyncing(true);
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'syncAllMissing' })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert(`Successfully created ${data.created} missing Firestore documents!`);
+        // Refresh the list
+        await fetchUsers();
+      } else {
+        throw new Error(data.error || 'Sync failed');
+      }
+    } catch (err: any) {
+      console.error('[AdminUsers] Error syncing:', err);
+      alert('Failed to sync: ' + err.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  // Create single Firestore doc
+  const createFirestoreDoc = async (userId: string, email: string, displayName?: string) => {
+    setUpdatingUserId(userId);
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'createFirestoreDoc',
+          userId,
+          email,
+          displayName
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Refresh the list
+        await fetchUsers();
+      } else {
+        throw new Error(data.error || 'Failed to create document');
+      }
+    } catch (err: any) {
+      console.error('[AdminUsers] Error creating doc:', err);
+      alert('Failed to create Firestore doc: ' + err.message);
+    } finally {
+      setUpdatingUserId(null);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -49,37 +157,27 @@ export default function AdminUsersPage() {
           return;
         }
         setCurrentUserEmail(user.email || "");
+        // Fetch users after confirming admin status
+        fetchUsers();
       } else {
         router.push("/auth");
       }
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, [router, fetchUsers]);
 
-  useEffect(() => {
-    // Subscribe to users collection
-    const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const usersData: User[] = [];
-      snapshot.forEach((doc) => {
-        usersData.push({ id: doc.id, ...doc.data() } as User);
-      });
-      setUsers(usersData);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const missingDocsCount = users.filter(u => u.hasFirestoreDoc === false).length;
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.country?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesFilter = filter === 'all' || 
-                         (filter === 'admin' && user.isAdmin) ||
-                         (filter === 'users' && !user.isAdmin);
+    let matchesFilter = true;
+    if (filter === 'admin') matchesFilter = user.isAdmin === true;
+    else if (filter === 'users') matchesFilter = user.isAdmin !== true;
+    else if (filter === 'missing') matchesFilter = user.hasFirestoreDoc === false;
 
     return matchesSearch && matchesFilter;
   });
@@ -88,6 +186,7 @@ export default function AdminUsersPage() {
     total: users.length,
     admins: users.filter(u => u.isAdmin).length,
     regular: users.filter(u => !u.isAdmin).length,
+    missing: missingDocsCount,
   };
 
   const handleToggleAdmin = async (userId: string, currentIsAdmin: boolean) => {
@@ -101,6 +200,8 @@ export default function AdminUsersPage() {
       await updateDoc(userRef, {
         isAdmin: !currentIsAdmin
       });
+      // Refresh the list
+      await fetchUsers();
       alert(`User ${currentIsAdmin ? 'demoted from' : 'promoted to'} admin successfully`);
     } catch (error) {
       console.error('Error updating user:', error);
@@ -124,6 +225,8 @@ export default function AdminUsersPage() {
     setUpdatingUserId(userId);
     try {
       await deleteDoc(doc(db, 'users', userId));
+      // Refresh the list
+      await fetchUsers();
       alert('User deleted successfully');
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -133,10 +236,22 @@ export default function AdminUsersPage() {
     }
   };
 
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return 'N/A';
+    try {
+      return new Date(dateStr).toLocaleDateString();
+    } catch {
+      return 'N/A';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-exodus-blue via-exodus-blue to-exodus-dark flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-white animate-spin" />
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-white animate-spin mx-auto mb-4" />
+          <p className="text-white">Loading users from Firebase Auth & Firestore...</p>
+        </div>
       </div>
     );
   }
@@ -144,19 +259,78 @@ export default function AdminUsersPage() {
   return (
     <DashboardLayout navItems={adminNavItems} userEmail={currentUserEmail} isAdmin={true}>
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Users Management</h1>
-          <p className="text-gray-300">Manage all registered users and their permissions</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Users Management</h1>
+            <p className="text-gray-300">Manage all registered users and their permissions</p>
+          </div>
+          <button
+            onClick={fetchUsers}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            <span>Refresh</span>
+          </button>
         </div>
 
+        {/* Sync Warning Banner */}
+        {missingDocsCount > 0 && (
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-6 h-6 text-yellow-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-yellow-400 font-semibold">
+                  {missingDocsCount} user(s) missing Firestore documents
+                </p>
+                <p className="text-yellow-400/80 text-sm mt-1">
+                  These users have Firebase Auth accounts but no profile data in Firestore. 
+                  This can happen when users are created through Whop but the Firestore doc creation fails.
+                </p>
+                <button
+                  onClick={syncMissingDocs}
+                  disabled={syncing}
+                  className="mt-3 flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {syncing ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Database size={16} />
+                  )}
+                  <span>{syncing ? 'Syncing...' : 'Create Missing Firestore Docs'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400">
+            <p className="font-semibold">Error loading users:</p>
+            <p>{error}</p>
+            <button 
+              onClick={fetchUsers}
+              className="mt-2 text-sm underline hover:no-underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white/10 backdrop-blur-lg border-2 border-blue-500/30 rounded-xl p-6">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-gray-300 text-sm font-semibold">Total Users</h3>
               <UserCheck className="w-8 h-8 text-blue-400" />
             </div>
             <p className="text-3xl font-bold text-white">{stats.total}</p>
+            {syncStats && (
+              <p className="text-xs text-gray-400 mt-1">
+                Auth: {syncStats.authCount} | Firestore: {syncStats.firestoreCount}
+              </p>
+            )}
           </div>
 
           <div className="bg-white/10 backdrop-blur-lg border-2 border-purple-500/30 rounded-xl p-6">
@@ -174,6 +348,20 @@ export default function AdminUsersPage() {
             </div>
             <p className="text-3xl font-bold text-white">{stats.regular}</p>
           </div>
+
+          <div className={`bg-white/10 backdrop-blur-lg border-2 rounded-xl p-6 ${stats.missing > 0 ? 'border-yellow-500/30' : 'border-green-500/30'}`}>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-gray-300 text-sm font-semibold">Missing Docs</h3>
+              {stats.missing > 0 ? (
+                <AlertTriangle className="w-8 h-8 text-yellow-400" />
+              ) : (
+                <CheckCircle className="w-8 h-8 text-green-400" />
+              )}
+            </div>
+            <p className={`text-3xl font-bold ${stats.missing > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
+              {stats.missing}
+            </p>
+          </div>
         </div>
 
         {/* Search and Filter */}
@@ -190,7 +378,7 @@ export default function AdminUsersPage() {
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setFilter('all')}
                 className={`px-4 py-2 rounded-lg transition-colors ${
@@ -199,7 +387,7 @@ export default function AdminUsersPage() {
                     : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50'
                 }`}
               >
-                All Users
+                All ({stats.total})
               </button>
               <button
                 onClick={() => setFilter('admin')}
@@ -209,7 +397,7 @@ export default function AdminUsersPage() {
                     : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50'
                 }`}
               >
-                Admins
+                Admins ({stats.admins})
               </button>
               <button
                 onClick={() => setFilter('users')}
@@ -219,8 +407,20 @@ export default function AdminUsersPage() {
                     : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50'
                 }`}
               >
-                Users
+                Users ({stats.regular})
               </button>
+              {stats.missing > 0 && (
+                <button
+                  onClick={() => setFilter('missing')}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    filter === 'missing'
+                      ? 'bg-yellow-500 text-black'
+                      : 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
+                  }`}
+                >
+                  Missing Docs ({stats.missing})
+                </button>
+              )}
             </div>
           </div>
 
@@ -229,6 +429,7 @@ export default function AdminUsersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/20">
+                  <th className="text-left text-gray-300 font-semibold py-3 px-2">Status</th>
                   <th className="text-left text-gray-300 font-semibold py-3 px-2">Email</th>
                   <th className="text-left text-gray-300 font-semibold py-3 px-2">Display Name</th>
                   <th className="text-left text-gray-300 font-semibold py-3 px-2">Country</th>
@@ -240,25 +441,42 @@ export default function AdminUsersPage() {
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center text-gray-400 py-8">
-                      No users found
+                    <td colSpan={7} className="text-center text-gray-400 py-8">
+                      {users.length === 0 ? 'No users found' : 'No users match your search/filter'}
                     </td>
                   </tr>
                 ) : (
                   filteredUsers.map((user) => (
-                    <tr key={user.id} className="border-b border-white/10 hover:bg-white/5">
-                      <td className="text-white py-4 px-2 flex items-center gap-2">
-                        <Mail size={16} className="text-gray-400" />
-                        {user.email}
+                    <tr key={user.id} className={`border-b border-white/10 hover:bg-white/5 ${!user.hasFirestoreDoc ? 'bg-yellow-500/5' : ''}`}>
+                      <td className="py-4 px-2">
+                        {user.hasFirestoreDoc ? (
+                          <span title="Synced - Has Firestore doc">
+                            <CheckCircle size={18} className="text-green-400" />
+                          </span>
+                        ) : (
+                          <span title="Missing Firestore document">
+                            <AlertTriangle size={18} className="text-yellow-400" />
+                          </span>
+                        )}
+                      </td>
+                      <td className="text-white py-4 px-2">
+                        <div className="flex items-center gap-2">
+                          <Mail size={16} className="text-gray-400 flex-shrink-0" />
+                          <span className="truncate max-w-[200px]">{user.email}</span>
+                        </div>
                       </td>
                       <td className="text-white py-4 px-2">{user.displayName || 'N/A'}</td>
-                      <td className="text-white py-4 px-2 flex items-center gap-1">
-                        {user.country && <MapPin size={14} className="text-gray-400" />}
-                        {user.country || 'N/A'}
+                      <td className="text-white py-4 px-2">
+                        <div className="flex items-center gap-1">
+                          {user.country && user.country !== 'Unknown' && <MapPin size={14} className="text-gray-400" />}
+                          {user.country || 'N/A'}
+                        </div>
                       </td>
-                      <td className="text-gray-300 py-4 px-2 flex items-center gap-1">
-                        <Calendar size={14} className="text-gray-400" />
-                        {user.createdAt ? new Date(user.createdAt.toMillis()).toLocaleDateString() : 'N/A'}
+                      <td className="text-gray-300 py-4 px-2">
+                        <div className="flex items-center gap-1">
+                          <Calendar size={14} className="text-gray-400" />
+                          {formatDate(user.createdAt)}
+                        </div>
                       </td>
                       <td className="py-4 px-2">
                         {user.isAdmin ? (
@@ -275,30 +493,47 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="py-4 px-2">
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleToggleAdmin(user.id, user.isAdmin || false)}
-                            disabled={updatingUserId === user.id}
-                            className={`p-2 rounded transition-colors ${
-                              user.isAdmin 
-                                ? 'text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-400' 
-                                : 'text-purple-500 hover:bg-purple-500/10 hover:text-purple-400'
-                            } disabled:opacity-50`}
-                            title={user.isAdmin ? 'Demote from Admin' : 'Promote to Admin'}
-                          >
-                            {updatingUserId === user.id ? (
-                              <Loader2 size={16} className="animate-spin" />
-                            ) : (
-                              <Edit2 size={16} />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user.id, user.email)}
-                            disabled={updatingUserId === user.id}
-                            className="p-2 text-red-500 hover:bg-red-500/10 hover:text-red-400 rounded transition-colors disabled:opacity-50"
-                            title="Delete User"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          {!user.hasFirestoreDoc ? (
+                            <button
+                              onClick={() => createFirestoreDoc(user.id, user.email, user.displayName || undefined)}
+                              disabled={updatingUserId === user.id}
+                              className="p-2 text-yellow-500 hover:bg-yellow-500/10 rounded transition-colors disabled:opacity-50"
+                              title="Create Firestore Document"
+                            >
+                              {updatingUserId === user.id ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                <Database size={16} />
+                              )}
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handleToggleAdmin(user.id, user.isAdmin || false)}
+                                disabled={updatingUserId === user.id}
+                                className={`p-2 rounded transition-colors ${
+                                  user.isAdmin 
+                                    ? 'text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-400' 
+                                    : 'text-purple-500 hover:bg-purple-500/10 hover:text-purple-400'
+                                } disabled:opacity-50`}
+                                title={user.isAdmin ? 'Demote from Admin' : 'Promote to Admin'}
+                              >
+                                {updatingUserId === user.id ? (
+                                  <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                  <Edit2 size={16} />
+                                )}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(user.id, user.email)}
+                                disabled={updatingUserId === user.id}
+                                className="p-2 text-red-500 hover:bg-red-500/10 hover:text-red-400 rounded transition-colors disabled:opacity-50"
+                                title="Delete User"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -307,9 +542,13 @@ export default function AdminUsersPage() {
               </tbody>
             </table>
           </div>
+
+          {/* User Count Footer */}
+          <div className="mt-4 pt-4 border-t border-white/10 text-gray-400 text-sm">
+            Showing {filteredUsers.length} of {users.length} total users
+          </div>
         </div>
       </div>
     </DashboardLayout>
   );
 }
-
