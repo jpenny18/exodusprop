@@ -384,6 +384,11 @@ export interface UserMetaApiAccount {
   lastMetricsUpdate?: string;
   trackerId?: string; // Risk management tracker ID
   fundedDate?: string; // Date when account became funded
+  // Trading account login credentials
+  login?: string;
+  password?: string;
+  server?: string;
+  nickname?: string;
 }
 
 /**

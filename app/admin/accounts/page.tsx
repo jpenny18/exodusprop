@@ -1671,7 +1671,12 @@ export default function AdminAccountsPage() {
         platform: connectModalData.step1.platform,
         status: accountForm.status,
         step: accountForm.step,
-        startDate: new Date().toISOString()
+        startDate: new Date().toISOString(),
+        // Store trading account login credentials
+        login: connectModalData.step1.login,
+        password: connectModalData.step1.password,
+        server: connectModalData.step1.server,
+        nickname: connectModalData.step1.nickname
       });
 
       setMessage({ type: 'success', text: 'Challenge account created successfully!' });

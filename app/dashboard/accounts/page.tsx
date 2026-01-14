@@ -211,6 +211,32 @@ export default function MyAccountsPage() {
                     </div>
                   )}
 
+                  {/* Login Credentials */}
+                  {account.login && (
+                    <div className="border-t border-exodus-light-blue/20 pt-4 mb-4">
+                      <div className="bg-exodus-light-blue/5 border border-exodus-light-blue/20 rounded-lg p-3">
+                        <h4 className="text-xs font-semibold text-exodus-light-blue mb-2 flex items-center gap-1">
+                          <Lock size={12} />
+                          Login Credentials
+                        </h4>
+                        <div className="space-y-1.5 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-400">Login:</span>
+                            <span className="text-white font-mono">{account.login}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-400">Password:</span>
+                            <span className="text-white font-mono">{account.password}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-400">Server:</span>
+                            <span className="text-white font-mono text-xs">{account.server}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* View Details Button */}
                   <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-exodus-light-blue/20 hover:bg-exodus-light-blue/30 text-white rounded-lg transition-colors text-sm font-medium border border-exodus-light-blue/30">
                     <span>View Details</span>

@@ -22,7 +22,6 @@ export default function FAQPage() {
   const faqs = [
     { q: "How do I start trading?", a: "After purchasing an account and completing KYC, you'll receive your trading credentials via email within 24 hours." },
     { q: "What are the profit targets?", a: "Our 1-Step evaluation requires an 8% profit target before you can move to a funded account." },
-    { q: "When can I request a payout?", a: "You can request payouts on-demand anytime after reaching your profit target and completing KYC verification." },
     { q: "What happens if I breach the rules?", a: "If you exceed the daily loss limit (4%) or max drawdown (6%), your account will be terminated. You can purchase a new account anytime." },
     { q: "Can I use EAs and bots?", a: "Yes! We allow EAs, trading bots, news trading, and holding positions over weekends." },
     { q: "How long does KYC take?", a: "KYC verification typically takes 24-48 hours. Ensure all documents are clear and meet our requirements." },
