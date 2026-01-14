@@ -116,7 +116,7 @@ export default function AuthPage() {
                 width={200}
                 height={200}
                 priority
-                className="h-40 md:h-60 w-auto hidden"
+                className="h-40 md:h-60 w-auto"
               />
             </Link>
             <Link

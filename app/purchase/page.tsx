@@ -758,7 +758,8 @@ export default function PurchasePage() {
                 </div>
 
                 {/* Purchase Buttons */}
-                <button
+                {/* Credit Card Payment - Hidden */}
+                {/* <button
                   type="submit"
                   disabled={!isFormValid() || isSubmitting}
                   className={`w-full mt-6 py-3 md:py-4 rounded-lg font-bold text-base md:text-lg transition shadow-lg ${
@@ -784,32 +785,17 @@ export default function PurchasePage() {
 
                 <p className="text-center text-gray-400 text-xs mt-4">
                   Secure checkout
-                </p>
+                </p> */}
 
-                {/* Divider */}
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/20"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span 
-                      className="px-4 text-gray-400"
-                      style={{ backgroundColor: 'color-mix(in oklab, white 5%, transparent)' }}
-                    >
-                      OR
-                    </span>
-                  </div>
-                </div>
-
-                {/* Crypto Payment Button */}
+                {/* Crypto Payment Button - Now Primary */}
                 <button
                   type="button"
                   onClick={handleCryptoPayment}
                   disabled={!isFormValid()}
-                  className={`w-full py-3 md:py-4 rounded-lg font-bold text-base md:text-lg transition shadow-lg border-2 ${
+                  className={`w-full mt-6 py-3 md:py-4 rounded-lg font-bold text-base md:text-lg transition shadow-lg ${
                     isFormValid()
-                      ? "border-green-500 bg-green-500/10 hover:bg-green-500/20 text-green-400 cursor-pointer"
-                      : "border-gray-600 bg-gray-600/10 text-gray-400 cursor-not-allowed opacity-50"
+                      ? "bg-green-500 hover:bg-green-600 text-white shadow-green-500/30 cursor-pointer"
+                      : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"
                   }`}
                 >
                   {isFormValid() ? `PAY WITH CRYPTO - $${accounts[selectedAccount].price}` : "COMPLETE ALL FIELDS TO CONTINUE"}

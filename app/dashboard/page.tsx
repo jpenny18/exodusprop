@@ -94,8 +94,8 @@ export default function DashboardPage() {
             </div>
           </Link>
 
-          {/* Payouts Card - Hidden for Whop audit */}
-          <Link href="/dashboard/payouts" className="hidden">
+          {/* Payouts Card */}
+          <Link href="/dashboard/payouts">
             <div className="bg-white/10 backdrop-blur-lg border-2 border-purple-500/30 rounded-xl p-6 cursor-pointer hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 bg-purple-500/20 rounded-lg">

@@ -27,6 +27,7 @@ export default function FAQPage() {
     { q: "How long does KYC take?", a: "KYC verification typically takes 24-48 hours. Ensure all documents are clear and meet our requirements." },
     { q: "What is the maximum leverage?", a: "All accounts come with up to 1:100 leverage." },
     { q: "Can I have multiple accounts?", a: "Yes, you can purchase and trade multiple accounts simultaneously." },
+    { q: "How do payouts work?", a: "Once you are funded, you can request a payout at any time after hitting the minimum withdrawal threshold. Payouts are processed within 24hrs and are sent via USDT on the Tron network." },
   ];
 
   return (
