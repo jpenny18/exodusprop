@@ -624,13 +624,13 @@ export default function AdminAccountsPage() {
       
       if (isFunded) {
         // Special checks for funded accounts based on account type
-        // 1-step funded: 8% max DD, 5% daily DD
+        // 1-step funded: 6% static max DD, 4% daily DD (same as challenge)
         // Elite funded: NO max DD, 10% trailing daily DD
         const fundedMaxDDKey = `${account.uid}-funded-maxdd-${metrics.maxDrawdown?.toFixed(2)}`;
         const fundedRiskKey = `${account.uid}-funded-risk-${(metrics.maxDailyDrawdown || metrics.dailyDrawdown)?.toFixed(2)}`;
         
-        const fundedMaxDD = config.accountType === '1-step' ? 8 : null; // Elite has no max DD
-        const fundedDailyDD = config.accountType === '1-step' ? 5 : 10; // 1-step: 5%, Elite: 10%
+        const fundedMaxDD = config.accountType === '1-step' ? 6 : null; // Elite has no max DD
+        const fundedDailyDD = config.accountType === '1-step' ? 4 : 10; // 1-step: 4%, Elite: 10%
         
         // Check for funded account max drawdown breach (only for 1-step)
         if (fundedMaxDD !== null && metrics.maxDrawdown > fundedMaxDD && !processedAlerts.has(fundedMaxDDKey)) {

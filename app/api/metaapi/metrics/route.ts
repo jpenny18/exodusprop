@@ -591,9 +591,9 @@ async function setupRiskTrackers(riskApi: any, accountId: string, accountType: '
       // - 8% profit target
       // - 4% max daily loss
       // - 6% max drawdown (STATIC - from initial balance)
-      // Funded 1-step accounts have slightly relaxed rules
-      const targetDrawdown = isFunded ? 8 : 6; // 6% static max DD for challenge, 8% for funded
-      const targetDailyDrawdown = isFunded ? 4 : 4; // 4% daily for challenge, 4% for funded
+      // Funded 1-step accounts have the same rules as challenge
+      const targetDrawdown = 6; // 6% static max DD for both challenge and funded
+      const targetDailyDrawdown = 4; // 4% daily for both challenge and funded
       
       requiredTrackers.push({
         name: isFunded ? '1-Step Funded Max Drawdown Monitor' : '1-Step Max Drawdown Monitor',
@@ -931,8 +931,8 @@ function calculateTradingObjectives(
     },
     '1-step-funded': {
       minTradingDays: 5, // 5 days with 0.5% gain for payout eligibility
-      maxDrawdown: 8, // 8% max drawdown for funded
-      maxDailyDrawdown: 5, // 5% daily drawdown for funded
+      maxDrawdown: 6, // 6% static max drawdown for funded (same as challenge)
+      maxDailyDrawdown: 4, // 4% daily drawdown for funded
       profitTarget: 0 // No profit target for funded
     },
     'elite': {
@@ -1345,12 +1345,12 @@ function calculateMockObjectives(accountType: string, accountSize: number, curre
   const tradingDays = 12; // Mock value
   
   if (accountType === '1-step') {
-    // 1-STEP: 8% profit, 4% daily, 6% static max DD
+    // 1-STEP: 8% profit, 4% daily, 6% static max DD (same for challenge and funded)
     if (isFunded) {
       return {
         minTradingDays: { target: 5, current: tradingDays, passed: tradingDays >= 5 },
-        maxDrawdown: { target: 8, current: staticDrawdown, passed: staticDrawdown <= 8, isStatic: true },
-        maxDailyDrawdown: { target: 5, current: dailyDrawdown, passed: dailyDrawdown <= 5 },
+        maxDrawdown: { target: 6, current: staticDrawdown, passed: staticDrawdown <= 6, isStatic: true },
+        maxDailyDrawdown: { target: 4, current: dailyDrawdown, passed: dailyDrawdown <= 4 },
         profitTarget: { target: 0, current: profitPercent, passed: true },
         fundedStatus: true,
         tradingDaysWithGain: tradingDays,
