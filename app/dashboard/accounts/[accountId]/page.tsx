@@ -104,6 +104,8 @@ const MetricCard = ({ title, value, icon: Icon, format = 'number', prefix = '', 
 // Trading Objectives Table Component
 const TradingObjectivesTable = ({ objectives, accountStatus }: { objectives: TradingObjectives; accountStatus?: string }) => {
   const isFunded = accountStatus === 'funded';
+  const hasNoMaxDD = (objectives.maxDrawdown as any).noLimit === true;
+  const isTrailingDaily = (objectives.maxDailyDrawdown as any).isTrailing === true;
   
   const rows = [
     { 
@@ -114,14 +116,14 @@ const TradingObjectivesTable = ({ objectives, accountStatus }: { objectives: Tra
       format: 'days'
     },
     { 
-      label: objectives.maxDrawdown.isStatic ? 'Max Drawdown (Static)' : 'Max Drawdown %', 
-      target: objectives.maxDrawdown.target,
+      label: hasNoMaxDD ? 'Max Drawdown (No Limit)' : (objectives.maxDrawdown.isStatic ? 'Max Drawdown (Static)' : 'Max Drawdown %'), 
+      target: hasNoMaxDD ? null : objectives.maxDrawdown.target,
       current: objectives.maxDrawdown.current,
       passed: objectives.maxDrawdown.passed,
-      format: 'percent'
+      format: hasNoMaxDD ? 'none' : 'percent'
     },
     { 
-      label: 'Max Daily Drawdown %', 
+      label: isTrailingDaily ? 'Max Daily Drawdown % (Trailing)' : 'Max Daily Drawdown %', 
       target: objectives.maxDailyDrawdown.target,
       current: objectives.maxDailyDrawdown.current,
       passed: objectives.maxDailyDrawdown.passed,
@@ -154,11 +156,11 @@ const TradingObjectivesTable = ({ objectives, accountStatus }: { objectives: Tra
               <tr key={index} className="border-b border-exodus-light-blue/10">
                 <td className="py-3 px-4 text-sm text-white">{row.label}</td>
                 <td className="py-3 px-4 text-sm text-center text-gray-300">
-                  {row.format === 'percent' ? `${row.target}%` : row.target}
+                  {row.format === 'none' ? 'N/A' : (row.format === 'percent' ? `${row.target}%` : row.target)}
                 </td>
                 <td className="py-3 px-4 text-sm text-center">
                   <span className={row.passed ? 'text-green-400' : 'text-yellow-400'}>
-                    {row.format === 'percent' ? `${row.current.toFixed(2)}%` : row.current}
+                    {row.format === 'none' ? `${row.current.toFixed(2)}%` : (row.format === 'percent' ? `${row.current.toFixed(2)}%` : row.current)}
                   </span>
                 </td>
                 <td className="py-3 px-4 text-sm text-center">
@@ -702,21 +704,25 @@ export default function AccountDetailsPage() {
           </div>
         )}
 
-        {/* Challenge Rules Card */}
+        {/* Challenge Rules Card - Dynamic based on account type */}
         <div className="bg-exodus-light-blue/5 border border-exodus-light-blue/20 rounded-xl p-6 mb-8">
-          <h3 className="text-exodus-light-blue font-medium mb-3">📊 Exodus 1-Step Challenge Rules</h3>
+          <h3 className="text-exodus-light-blue font-medium mb-3">
+            📊 {userAccount?.accountType === 'elite' ? 'Exodus Elite' : 'Exodus 1-Step'} Challenge Rules
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
             <div>
               <p className="text-gray-400 mb-1">Profit Target</p>
-              <p className="text-white font-medium">8%</p>
+              <p className="text-white font-medium">{userAccount?.accountType === 'elite' ? '10%' : '8%'}</p>
             </div>
             <div>
-              <p className="text-gray-400 mb-1">Max Drawdown (Static)</p>
-              <p className="text-white font-medium">6% from initial balance</p>
+              <p className="text-gray-400 mb-1">Max Drawdown {userAccount?.accountType === 'elite' ? '' : '(Static)'}</p>
+              <p className="text-white font-medium">
+                {userAccount?.accountType === 'elite' ? 'No Limit' : '6% from initial balance'}
+              </p>
             </div>
             <div>
-              <p className="text-gray-400 mb-1">Daily Loss Limit</p>
-              <p className="text-white font-medium">4%</p>
+              <p className="text-gray-400 mb-1">Daily Loss Limit {userAccount?.accountType === 'elite' ? '(Trailing)' : ''}</p>
+              <p className="text-white font-medium">{userAccount?.accountType === 'elite' ? '10%' : '4%'}</p>
             </div>
             <div>
               <p className="text-gray-400 mb-1">Min Trading Days</p>
@@ -775,7 +781,9 @@ export default function AccountDetailsPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 mb-1">Account Type</p>
-                    <p className="text-white font-medium">Exodus 1-Step</p>
+                    <p className="text-white font-medium">
+                      {userAccount?.accountType === 'elite' ? 'Exodus Elite' : 'Exodus 1-Step'}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 mb-1">Platform</p>

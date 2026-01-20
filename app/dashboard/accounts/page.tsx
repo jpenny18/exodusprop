@@ -170,11 +170,8 @@ export default function MyAccountsPage() {
                     </h3>
                     <p className="text-sm text-gray-400">
                       {account.accountType === '1-step' ? 'Exodus 1-Step' : 
-                       account.accountType === 'gauntlet' ? 'Exodus Gauntlet' :
-                       account.accountType === 'standard' ? 'Exodus Standard' : 'Exodus Instant'} • 
-                      {account.step === 3 ? ' Funded' : 
-                       (account.accountType === '1-step' || account.accountType === 'gauntlet') ? ' Challenge' : 
-                       ` Step ${account.step}`}
+                       account.accountType === 'elite' ? 'Exodus Elite' : 'Exodus 1-Step'} • 
+                      {account.step === 3 ? ' Funded' : ' Challenge'}
                     </p>
                   </div>
 
@@ -205,7 +202,7 @@ export default function MyAccountsPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-400">Profit Target</span>
                         <span className="text-sm font-medium text-white">
-                          {profit.toFixed(1)}% / 8%
+                          {profit.toFixed(1)}% / {account.accountType === 'elite' ? '10' : '8'}%
                         </span>
                       </div>
                     </div>
@@ -297,18 +294,18 @@ export default function MyAccountsPage() {
           </div>
         </div>
 
-        {/* Info Cards */}
+        {/* Info Cards - Dynamic based on challenge type */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white/10 backdrop-blur-lg border-2 border-exodus-light-blue/30 rounded-xl p-4">
-            <h3 className="text-white font-medium mb-1">6% Max Drawdown</h3>
+            <h3 className="text-white font-medium mb-1">1-Step: 6% Max Drawdown</h3>
             <p className="text-sm text-gray-300">
               Static maximum drawdown from starting balance
             </p>
           </div>
           <div className="bg-white/10 backdrop-blur-lg border-2 border-exodus-light-blue/30 rounded-xl p-4">
-            <h3 className="text-white font-medium mb-1">8% Profit Target</h3>
+            <h3 className="text-white font-medium mb-1">1-Step: 8% | Elite: 10%</h3>
             <p className="text-sm text-gray-300">
-              Achieve 8% growth to pass the challenge
+              Profit target to pass the challenge
             </p>
           </div>
           <div className="bg-white/10 backdrop-blur-lg border-2 border-exodus-light-blue/30 rounded-xl p-4">

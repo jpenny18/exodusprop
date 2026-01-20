@@ -570,7 +570,7 @@ export async function POST(req: NextRequest) {
 }
 
 // Enhanced function to set up automated risk trackers
-async function setupRiskTrackers(riskApi: any, accountId: string, accountType: 'standard' | 'instant' | '1-step' | 'gauntlet', accountSize: number, step: number = 1) {
+async function setupRiskTrackers(riskApi: any, accountId: string, accountType: '1-step' | 'elite', accountSize: number, step: number = 1) {
   try {
     // Check if riskApi is available
     if (!riskApi) {
@@ -584,34 +584,55 @@ async function setupRiskTrackers(riskApi: any, accountId: string, accountType: '
     
     // Define the trackers we need based on challenge type and step
     const isFunded = step === 3;
-    let targetDrawdown: number;
-    let targetDailyDrawdown: number | null;
+    const requiredTrackers: any[] = [];
     
-    if (isFunded) {
-      // Funded accounts - can be expanded later if you fund successful traders
-      targetDrawdown = 10; // 10% max drawdown for funded accounts
-      targetDailyDrawdown = 5; // 5% daily drawdown for funded accounts
-    } else {
-      // EXODUS 1-STEP CHALLENGE: 6% static max drawdown, 4% daily loss limit
-      targetDrawdown = 6;
-      targetDailyDrawdown = 4;
-    }
-    
-    // Required trackers using correct NewTracker format
-    const requiredTrackers: any[] = [
-      {
-        name: isFunded ? 'Funded Max Drawdown Monitor' : 'Exodus Max Drawdown Monitor',
+    if (accountType === '1-step') {
+      // 1-STEP CHALLENGE RULES:
+      // - 8% profit target
+      // - 4% max daily loss
+      // - 6% max drawdown (STATIC - from initial balance)
+      // Funded 1-step accounts have slightly relaxed rules
+      const targetDrawdown = isFunded ? 8 : 6; // 6% static max DD for challenge, 8% for funded
+      const targetDailyDrawdown = isFunded ? 4 : 4; // 4% daily for challenge, 4% for funded
+      
+      requiredTrackers.push({
+        name: isFunded ? '1-Step Funded Max Drawdown Monitor' : '1-Step Max Drawdown Monitor',
         period: 'day',
         relativeDrawdownThreshold: targetDrawdown / 100,
         absoluteDrawdownThreshold: (accountSize * targetDrawdown) / 100
-      },
-      {
-        name: isFunded ? 'Funded Daily Loss Monitor' : 'Exodus Daily Loss Monitor',
+      });
+      
+      requiredTrackers.push({
+        name: isFunded ? '1-Step Funded Daily Loss Monitor' : '1-Step Daily Loss Monitor',
         period: 'day',
         relativeDrawdownThreshold: targetDailyDrawdown / 100,
         absoluteDrawdownThreshold: (accountSize * targetDailyDrawdown) / 100
-      }
-    ];
+      });
+    } else if (accountType === 'elite') {
+      // ELITE CHALLENGE RULES:
+      // - 10% profit target
+      // - 10% max daily loss (TRAILING end of day)
+      // - NO max drawdown limit
+      // Elite funded accounts have the same daily loss limit
+      const targetDailyDrawdown = 10; // 10% trailing daily loss limit for both challenge and funded
+      
+      // Elite has NO max drawdown tracker - only daily loss tracker
+      requiredTrackers.push({
+        name: isFunded ? 'Elite Funded Daily Loss Monitor (Trailing)' : 'Elite Daily Loss Monitor (Trailing)',
+        period: 'day',
+        relativeDrawdownThreshold: targetDailyDrawdown / 100,
+        absoluteDrawdownThreshold: (accountSize * targetDailyDrawdown) / 100
+      });
+      
+      // Add profit target tracker for Elite (10%)
+      const targetProfit = 10;
+      requiredTrackers.push({
+        name: isFunded ? 'Elite Funded Profit Monitor' : 'Elite Profit Monitor',
+        period: 'day',
+        relativeProfitThreshold: targetProfit / 100,
+        absoluteProfitThreshold: (accountSize * targetProfit) / 100
+      });
+    }
     
     // Check if trackers already exist and create missing ones
     for (const requiredTracker of requiredTrackers) {
@@ -839,7 +860,7 @@ async function getCachedMaxDailyDrawdown(accountId: string): Promise<number | un
 
 function calculateTradingObjectives(
   metrics: any,
-  challengeType: 'standard' | 'instant' | '1-step' | 'gauntlet',
+  challengeType: '1-step' | 'elite',
   accountStartBalance: number,
   step: number = 1,
   equityData?: any[],
@@ -849,19 +870,18 @@ function calculateTradingObjectives(
   cachedMaxDailyDrawdown?: number
 ) {
   const currentBalance = metrics.balance || 0;
+  const isFunded = step === 3;
   
-  // STATIC DRAWDOWN CALCULATION
+  // STATIC DRAWDOWN CALCULATION (for 1-step)
   // Static drawdown is measured from INITIAL BALANCE, not from peak equity
   // Example: $100k account, current balance $95k = 5% static drawdown
-  // Even if balance went to $110k and back to $95k, static DD is still 5% (not 15%)
-  // Only triggers violation if balance goes below (initialBalance * (1 - maxDDPercent))
   let staticDrawdown = 0;
   if (accountStartBalance > 0 && currentBalance < accountStartBalance) {
     staticDrawdown = ((accountStartBalance - currentBalance) / accountStartBalance) * 100;
   }
-  // If current balance is above initial, static drawdown is 0%
   
-  // Keep track of the trailing drawdown from MetaStats for reference
+  // TRAILING DRAWDOWN CALCULATION (for elite)
+  // Trailing drawdown is measured from PEAK EQUITY
   const trailingDrawdown = metrics.maxDrawdown || 0;
   
   // Enhanced daily drawdown calculation using multiple sources
@@ -900,86 +920,77 @@ function calculateTradingObjectives(
     ? ((currentBalance - accountStartBalance) / accountStartBalance) * 100 
     : 0;
   
-  // EXODUS CHALLENGE RULES - Only one challenge type
-  // IMPORTANT: Max Drawdown is STATIC from initial balance
-  // Example: $100k account with 6% max DD means account cannot go below $94k
-  // If user profits 7% to $107k then loses 7% back to $100k, that's NOT a violation
-  // because balance ($100k) never went below the static threshold ($94k)
+  // EXODUS CHALLENGE RULES
+  // Two challenge types: 1-step and elite
   const targets = {
     '1-step': {
-      minTradingDays: 0, // EXODUS: No minimum trading days requirement
-      maxDrawdown: 6, // EXODUS: 6% STATIC max drawdown from initial balance
-      maxDailyDrawdown: 4, // EXODUS: 4% daily loss limit
-      profitTargetStep1: 8, // EXODUS: 8% profit target
-      profitTargetStep2: 0 // No step 2 for Exodus
+      minTradingDays: 0, // No minimum trading days
+      maxDrawdown: 6, // 6% STATIC max drawdown from initial balance
+      maxDailyDrawdown: 4, // 4% daily loss limit
+      profitTarget: 8 // 8% profit target
     },
-    funded: {
-      minTradingDays: 5, // 5 days with 0.5% gain required for payout eligibility (if you fund traders)
-      maxDrawdown: 10, // 10% max drawdown for funded accounts
-      maxDailyDrawdown: 5, // 5% daily drawdown for funded accounts
-      profitTarget: 0, // No profit target for funded accounts
-      maxRiskLimit: 2, // Special rule: violation if daily drawdown > 2%
-      minDailyGain: 0.5 // Minimum 0.5% gain required for a day to count as a trading day
+    '1-step-funded': {
+      minTradingDays: 5, // 5 days with 0.5% gain for payout eligibility
+      maxDrawdown: 8, // 8% max drawdown for funded
+      maxDailyDrawdown: 5, // 5% daily drawdown for funded
+      profitTarget: 0 // No profit target for funded
+    },
+    'elite': {
+      minTradingDays: 0, // No minimum trading days
+      maxDrawdown: null, // NO max drawdown for elite
+      maxDailyDrawdown: 10, // 10% TRAILING daily loss (end of day)
+      profitTarget: 10 // 10% profit target
+    },
+    'elite-funded': {
+      minTradingDays: 5, // 5 days with 0.5% gain for payout eligibility
+      maxDrawdown: null, // NO max drawdown for elite funded
+      maxDailyDrawdown: 10, // 10% trailing daily loss
+      profitTarget: 0 // No profit target for funded
     }
   };
   
-  // For funded accounts (step 3), use special rules (can expand later if you fund traders)
-  const isFunded = step === 3;
-  const target = isFunded ? targets.funded : targets['1-step'];
+  // Select the appropriate target based on account type and funded status
+  const targetKey = isFunded ? `${challengeType}-funded` : challengeType;
+  const target = targets[targetKey as keyof typeof targets];
   
-  // Enhanced trading days calculation with updated logic (1 trade per day instead of 2)
+  // Trading days calculation
   let tradingDays = 0;
   
   if (isFunded && periodStats && periodStats.length > 0) {
     // For funded accounts: count days with 0.5% gain from starting balance
-    const gainThreshold = accountStartBalance * 0.005; // 0.5% of starting balance
-    
+    const gainThreshold = accountStartBalance * 0.005;
     periodStats.forEach(stat => {
       if (stat.profit >= gainThreshold) {
         tradingDays++;
       }
     });
   } else if (periodStats && periodStats.length > 0) {
-    // For challenge accounts: Use the most recent period stat's trading days count
     const latestStat = periodStats[periodStats.length - 1];
     tradingDays = latestStat.tradingDays || 0;
   } else if (tradesData && tradesData.length > 0) {
-    // Group trades by day
     const tradesByDay: { [key: string]: number } = {};
-    
     tradesData.forEach(trade => {
       const tradeDate = trade.openTime || trade.time || trade.date;
       if (tradeDate) {
         const date = new Date(tradeDate);
-        const dayKey = date.toISOString().slice(0, 10); // YYYY-MM-DD
-        
-        if (!tradesByDay[dayKey]) {
-          tradesByDay[dayKey] = 0;
-        }
+        const dayKey = date.toISOString().slice(0, 10);
+        if (!tradesByDay[dayKey]) tradesByDay[dayKey] = 0;
         tradesByDay[dayKey]++;
       }
     });
-    
-    // Updated: Count days with at least 1 trade (changed from 2)
     Object.values(tradesByDay).forEach(tradesCount => {
-      if (tradesCount >= 1) {
-        tradingDays++;
-      }
+      if (tradesCount >= 1) tradingDays++;
     });
   } else if (metrics.tradingDays) {
-    // If MetaStats provides trading days directly
     tradingDays = metrics.tradingDays;
   } else if (metrics.trades > 0) {
-    // Fallback estimation - assume trades are distributed across days
-    // Updated: with an average of 2 trades per trading day (changed from 3)
     tradingDays = Math.min(Math.floor(metrics.trades / 2), 30);
   }
   
   // Check for recent breaches in risk events
   const recentBreaches = {
     maxDrawdown: false,
-    dailyDrawdown: false,
-    fundedRiskViolation: false
+    dailyDrawdown: false
   };
   
   if (riskEvents && riskEvents.length > 0) {
@@ -989,83 +1000,135 @@ function calculateTradingObjectives(
       dayAgo.setDate(dayAgo.getDate() - 1);
       return eventTime > dayAgo;
     });
-    
     recentBreaches.maxDrawdown = recentEvents.some(e => e.exceededThresholdType === 'drawdown');
     recentBreaches.dailyDrawdown = recentEvents.some(e => e.exceededThresholdType === 'dailyDrawdown');
-    
-    // For funded accounts, check if daily drawdown went above 2%
-    if (isFunded) {
-      recentBreaches.fundedRiskViolation = recentEvents.some(e => 
-        e.exceededThresholdType === 'dailyDrawdown' && e.relativeDrawdown > 0.02
-      );
-    }
   }
   
-  // Special handling for funded accounts
-  if (isFunded) {
+  // Build objectives based on challenge type
+  if (challengeType === '1-step') {
+    // 1-STEP CHALLENGE: 8% profit, 4% daily loss, 6% static max DD
+    if (isFunded) {
+      return {
+        minTradingDays: {
+          target: target.minTradingDays,
+          current: tradingDays,
+          passed: tradingDays >= target.minTradingDays
+        },
+        maxDrawdown: {
+          target: target.maxDrawdown,
+          current: staticDrawdown,
+          passed: staticDrawdown <= (target.maxDrawdown as number),
+          recentBreach: recentBreaches.maxDrawdown,
+          isStatic: true
+        },
+        maxDailyDrawdown: {
+          target: target.maxDailyDrawdown,
+          current: maxDailyDrawdown,
+          passed: maxDailyDrawdown <= target.maxDailyDrawdown,
+          recentBreach: recentBreaches.dailyDrawdown
+        },
+        profitTarget: {
+          target: 0,
+          current: profitPercentage,
+          passed: true
+        },
+        fundedStatus: true,
+        tradingDaysWithGain: tradingDays,
+        fundedPayoutEligible: tradingDays >= target.minTradingDays
+      };
+    }
+    
+    // Challenge (not funded)
     return {
       minTradingDays: {
         target: target.minTradingDays,
         current: tradingDays,
-        passed: tradingDays >= target.minTradingDays // Must have 5 days with 0.5% gain for payout eligibility
+        passed: tradingDays >= target.minTradingDays
       },
       maxDrawdown: {
         target: target.maxDrawdown,
         current: staticDrawdown,
-        passed: staticDrawdown <= target.maxDrawdown,
-        recentBreach: recentBreaches.maxDrawdown
+        passed: staticDrawdown <= (target.maxDrawdown as number),
+        recentBreach: recentBreaches.maxDrawdown,
+        isStatic: true,
+        trailingDrawdown: trailingDrawdown
       },
       maxDailyDrawdown: {
-        target: target.maxDailyDrawdown as number, // Funded accounts always have daily drawdown
+        target: target.maxDailyDrawdown,
         current: maxDailyDrawdown,
-        passed: maxDailyDrawdown <= (target.maxDailyDrawdown as number), // Must be under 8%
-        recentBreach: recentBreaches.dailyDrawdown || recentBreaches.fundedRiskViolation,
-        fundedRiskViolation: maxDailyDrawdown > 2 // Risk violation if DD > 2%
+        passed: maxDailyDrawdown <= target.maxDailyDrawdown,
+        recentBreach: recentBreaches.dailyDrawdown
       },
       profitTarget: {
-        target: 0,
+        target: target.profitTarget,
         current: profitPercentage,
-        passed: true // No profit target for funded accounts
+        passed: profitPercentage >= target.profitTarget
+      }
+    };
+  } else {
+    // ELITE CHALLENGE: 10% profit, 10% trailing daily loss, NO max DD
+    if (isFunded) {
+      return {
+        minTradingDays: {
+          target: target.minTradingDays,
+          current: tradingDays,
+          passed: tradingDays >= target.minTradingDays
+        },
+        maxDrawdown: {
+          target: null, // No max drawdown for elite
+          current: trailingDrawdown,
+          passed: true, // Always passes since there's no limit
+          recentBreach: false,
+          isStatic: false,
+          noLimit: true
+        },
+        maxDailyDrawdown: {
+          target: target.maxDailyDrawdown,
+          current: maxDailyDrawdown,
+          passed: maxDailyDrawdown <= target.maxDailyDrawdown,
+          recentBreach: recentBreaches.dailyDrawdown,
+          isTrailing: true // Elite uses trailing end-of-day
+        },
+        profitTarget: {
+          target: 0,
+          current: profitPercentage,
+          passed: true
+        },
+        fundedStatus: true,
+        tradingDaysWithGain: tradingDays,
+        fundedPayoutEligible: tradingDays >= target.minTradingDays
+      };
+    }
+    
+    // Elite Challenge (not funded)
+    return {
+      minTradingDays: {
+        target: target.minTradingDays,
+        current: tradingDays,
+        passed: tradingDays >= target.minTradingDays
       },
-      fundedStatus: true,
-      tradingDaysWithGain: tradingDays, // For funded accounts, this represents days with 0.5% gain
-      fundedPayoutEligible: tradingDays >= target.minTradingDays // True when 5+ days with 0.5% gain
+      maxDrawdown: {
+        target: null, // No max drawdown for elite
+        current: trailingDrawdown,
+        passed: true, // Always passes since there's no limit
+        recentBreach: false,
+        isStatic: false,
+        noLimit: true
+      },
+      maxDailyDrawdown: {
+        target: target.maxDailyDrawdown,
+        current: maxDailyDrawdown,
+        passed: maxDailyDrawdown <= target.maxDailyDrawdown,
+        recentBreach: recentBreaches.dailyDrawdown,
+        isTrailing: true // Elite uses trailing end-of-day
+      },
+      profitTarget: {
+        target: target.profitTarget,
+        current: profitPercentage,
+        passed: profitPercentage >= target.profitTarget
+      }
     };
   }
-  
-  // Regular challenge account objectives
-  // EXODUS 1-STEP CHALLENGE OBJECTIVES
-  // Using STATIC drawdown (from initial balance) NOT trailing drawdown (from peak)
-  // At this point we know it's NOT funded, so use the 1-step target explicitly
-  const challengeTarget = targets['1-step'];
-  const objectives: any = {
-    minTradingDays: {
-      target: challengeTarget.minTradingDays,
-      current: tradingDays,
-      passed: tradingDays >= challengeTarget.minTradingDays // Will always pass since target is 0
-    },
-    maxDrawdown: {
-      target: challengeTarget.maxDrawdown,
-      current: staticDrawdown, // Use STATIC drawdown from initial balance
-      passed: staticDrawdown <= challengeTarget.maxDrawdown, // Check against static threshold
-      recentBreach: recentBreaches.maxDrawdown,
-      isStatic: true, // Exodus uses static drawdown, not trailing
-      trailingDrawdown: trailingDrawdown // Keep trailing for reference
-    },
-    maxDailyDrawdown: {
-      target: challengeTarget.maxDailyDrawdown,
-      current: maxDailyDrawdown,
-      passed: maxDailyDrawdown <= challengeTarget.maxDailyDrawdown,
-      recentBreach: recentBreaches.dailyDrawdown
-    },
-    profitTarget: {
-      target: challengeTarget.profitTargetStep1,
-      current: profitPercentage,
-      passed: profitPercentage >= challengeTarget.profitTargetStep1
-    }
-  };
-  
-  return objectives;
 }
 
 function generateMockData(accountId: string, accountType: string, accountSize: number, step: number = 1) {
@@ -1218,45 +1281,61 @@ function generateMockPeriodStats() {
 
 function generateMockTrackers(accountType: string, accountSize: number, step: number = 1) {
   const isFunded = step === 3;
+  const trackers: any[] = [];
   
-  let maxDD: number;
-  let dailyDD: number | null;
-  
-  if (isFunded) {
-    // Funded account rules (if you fund traders later)
-    maxDD = 10;
-    dailyDD = 5;
-  } else {
-    // EXODUS 1-STEP CHALLENGE: 6% max DD, 4% daily loss
-    maxDD = 6;
-    dailyDD = 4;
-  }
-  
-  const trackers: any[] = [
-    {
+  if (accountType === '1-step') {
+    // 1-STEP: 6% static max DD, 4% daily loss (8% and 5% for funded)
+    const maxDD = isFunded ? 8 : 6;
+    const dailyDD = isFunded ? 5 : 4;
+    
+    trackers.push({
       id: 'tracker_max_dd',
-      name: isFunded ? 'Funded Max Drawdown Monitor' : 'Exodus Max Drawdown Monitor',
+      name: isFunded ? '1-Step Funded Max Drawdown Monitor' : '1-Step Max Drawdown Monitor',
       period: 'day',
       relativeDrawdownThreshold: maxDD / 100,
       absoluteDrawdownThreshold: (accountSize * maxDD) / 100
-    },
-    {
+    });
+    
+    trackers.push({
       id: 'tracker_daily_dd',
-      name: isFunded ? 'Funded Daily Loss Monitor' : 'Exodus Daily Loss Monitor',
+      name: isFunded ? '1-Step Funded Daily Loss Monitor' : '1-Step Daily Loss Monitor',
       period: 'day',
       relativeDrawdownThreshold: dailyDD / 100,
       absoluteDrawdownThreshold: (accountSize * dailyDD) / 100
+    });
+  } else if (accountType === 'elite') {
+    // ELITE: NO max DD, 10% trailing daily loss
+    const dailyDD = 10;
+    
+    // Only daily loss tracker for elite (no max DD)
+    trackers.push({
+      id: 'tracker_daily_dd',
+      name: isFunded ? 'Elite Funded Daily Loss Monitor (Trailing)' : 'Elite Daily Loss Monitor (Trailing)',
+      period: 'day',
+      relativeDrawdownThreshold: dailyDD / 100,
+      absoluteDrawdownThreshold: (accountSize * dailyDD) / 100
+    });
+    
+    // Profit tracker for elite
+    if (!isFunded) {
+      trackers.push({
+        id: 'tracker_profit',
+        name: 'Elite Profit Monitor',
+        period: 'day',
+        relativeProfitThreshold: 0.10,
+        absoluteProfitThreshold: (accountSize * 10) / 100
+      });
     }
-  ];
+  }
   
   return trackers;
 }
 
 function calculateMockObjectives(accountType: string, accountSize: number, currentBalance: number, step: number = 1, equityData?: any[], cachedMaxDailyDrawdown?: number) {
   const profitPercent = ((currentBalance - accountSize) / accountSize) * 100;
+  const isFunded = step === 3;
   
-  // STATIC drawdown calculation for mock data
-  // Static drawdown only counts if we're BELOW initial balance
+  // Static drawdown calculation (from initial balance)
   let staticDrawdown = 0;
   if (currentBalance < accountSize) {
     staticDrawdown = ((accountSize - currentBalance) / accountSize) * 100;
@@ -1265,55 +1344,55 @@ function calculateMockObjectives(accountType: string, accountSize: number, curre
   const dailyDrawdown = cachedMaxDailyDrawdown || 2.3; // Mock value
   const tradingDays = 12; // Mock value
   
-  const isFunded = step === 3;
-  
-  if (isFunded) {
+  if (accountType === '1-step') {
+    // 1-STEP: 8% profit, 4% daily, 6% static max DD
+    if (isFunded) {
+      return {
+        minTradingDays: { target: 5, current: tradingDays, passed: tradingDays >= 5 },
+        maxDrawdown: { target: 8, current: staticDrawdown, passed: staticDrawdown <= 8, isStatic: true },
+        maxDailyDrawdown: { target: 5, current: dailyDrawdown, passed: dailyDrawdown <= 5 },
+        profitTarget: { target: 0, current: profitPercent, passed: true },
+        fundedStatus: true,
+        tradingDaysWithGain: tradingDays,
+        fundedPayoutEligible: tradingDays >= 5
+      };
+    }
+    
     return {
-      minTradingDays: { target: 5, current: tradingDays, passed: tradingDays >= 5 },
-      maxDrawdown: { target: 10, current: staticDrawdown, passed: staticDrawdown <= 10, isStatic: true },
-      maxDailyDrawdown: { target: 5, current: dailyDrawdown, passed: dailyDrawdown <= 5 },
-      profitTarget: { target: 0, current: profitPercent, passed: true },
-      fundedStatus: true,
-      tradingDaysWithGain: tradingDays,
-      fundedPayoutEligible: tradingDays >= 5
+      minTradingDays: { target: 0, current: tradingDays, passed: true },
+      maxDrawdown: { target: 6, current: staticDrawdown, passed: staticDrawdown <= 6, isStatic: true },
+      maxDailyDrawdown: { target: 4, current: dailyDrawdown, passed: dailyDrawdown <= 4 },
+      profitTarget: { target: 8, current: profitPercent, passed: profitPercent >= 8 }
+    };
+  } else if (accountType === 'elite') {
+    // ELITE: 10% profit, 10% trailing daily, NO max DD
+    if (isFunded) {
+      return {
+        minTradingDays: { target: 5, current: tradingDays, passed: tradingDays >= 5 },
+        maxDrawdown: { target: null, current: staticDrawdown, passed: true, noLimit: true, isStatic: false },
+        maxDailyDrawdown: { target: 10, current: dailyDrawdown, passed: dailyDrawdown <= 10, isTrailing: true },
+        profitTarget: { target: 0, current: profitPercent, passed: true },
+        fundedStatus: true,
+        tradingDaysWithGain: tradingDays,
+        fundedPayoutEligible: tradingDays >= 5
+      };
+    }
+    
+    return {
+      minTradingDays: { target: 0, current: tradingDays, passed: true },
+      maxDrawdown: { target: null, current: staticDrawdown, passed: true, noLimit: true, isStatic: false },
+      maxDailyDrawdown: { target: 10, current: dailyDrawdown, passed: dailyDrawdown <= 10, isTrailing: true },
+      profitTarget: { target: 10, current: profitPercent, passed: profitPercent >= 10 }
     };
   }
   
-  // EXODUS 1-STEP CHALLENGE RULES
-  const targets: any = {
-    minTradingDays: 0, // No minimum trading days
-    maxDrawdown: 6, // 6% STATIC max drawdown from initial balance
-    maxDailyDrawdown: 4, // 4% daily loss limit
-    profitTarget: 8 // 8% profit target
+  // Fallback (should not reach here with proper types)
+  return {
+    minTradingDays: { target: 0, current: tradingDays, passed: true },
+    maxDrawdown: { target: 6, current: staticDrawdown, passed: staticDrawdown <= 6, isStatic: true },
+    maxDailyDrawdown: { target: 4, current: dailyDrawdown, passed: dailyDrawdown <= 4 },
+    profitTarget: { target: 8, current: profitPercent, passed: profitPercent >= 8 }
   };
-  
-  // EXODUS 1-STEP CHALLENGE MOCK OBJECTIVES
-  // Using STATIC drawdown (from initial balance)
-  const objectives: any = {
-    minTradingDays: { 
-      target: targets.minTradingDays, 
-      current: tradingDays, 
-      passed: tradingDays >= targets.minTradingDays // Will always pass since target is 0
-    },
-    maxDrawdown: { 
-      target: targets.maxDrawdown, 
-      current: staticDrawdown, // Use STATIC drawdown
-      passed: staticDrawdown <= targets.maxDrawdown,
-      isStatic: true // Exodus uses static drawdown from initial balance
-    },
-    maxDailyDrawdown: { 
-      target: targets.maxDailyDrawdown, 
-      current: dailyDrawdown, 
-      passed: dailyDrawdown <= targets.maxDailyDrawdown 
-    },
-    profitTarget: { 
-      target: targets.profitTarget, 
-      current: profitPercent, 
-      passed: profitPercent >= targets.profitTarget 
-    }
-  };
-  
-  return objectives;
 }
 
 function mapTradeType(type: string): 'buy' | 'sell' | 'unknown' {

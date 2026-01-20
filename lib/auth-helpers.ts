@@ -373,11 +373,11 @@ export interface UserMetaApiAccount {
   userId: string;
   accountId: string;
   accountToken: string;
-  accountType: 'standard' | 'instant' | '1-step' | 'gauntlet';
+  accountType: '1-step' | 'elite';
   accountSize: number;
   platform: 'mt4' | 'mt5';
   status: 'active' | 'inactive' | 'passed' | 'failed' | 'funded';
-  step: 1 | 2 | 3; // 1 = Step 1, 2 = Step 2, 3 = Funded
+  step: 1 | 2 | 3; // 1 = Challenge, 2 = Not used for 1-step/elite, 3 = Funded
   startDate: string;
   createdAt: string;
   updatedAt: string;

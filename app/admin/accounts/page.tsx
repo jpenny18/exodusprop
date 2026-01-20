@@ -84,7 +84,7 @@ export default function AdminAccountsPage() {
   const [accountForm, setAccountForm] = useState({
     accountId: '',
     accountToken: '',
-    accountType: 'standard' as 'standard' | 'instant' | '1-step' | 'gauntlet',
+    accountType: '1-step' as '1-step' | 'elite',
     accountSize: 10000,
     platform: 'mt5' as 'mt4' | 'mt5',
     status: 'active' as 'active' | 'inactive' | 'passed' | 'failed' | 'funded',
@@ -564,17 +564,16 @@ export default function AdminAccountsPage() {
         });
       }
       
-      // Check for objective breaches
-      const maxDDLimit = config.accountType === '1-step' ? 8 : 
-                        config.accountType === 'instant' ? 4 : 
-                        config.accountType === 'gauntlet' ? 15 :
-                        config.accountType === 'standard' ? 15 : 15;
+      // Check for objective breaches based on account type
+      // 1-step: 6% static max DD, 4% daily loss
+      // Elite: NO max DD, 10% trailing daily loss
+      const maxDDLimit = config.accountType === '1-step' ? 6 : 
+                        config.accountType === 'elite' ? null : 6; // Elite has no max DD limit
       const dailyDDLimit = config.accountType === '1-step' ? 4 :
-                          config.accountType === 'instant' ? null : // No daily limit for instant
-                          config.accountType === 'gauntlet' ? 8 :
-                          config.accountType === 'standard' ? 8 : 8;
+                          config.accountType === 'elite' ? 10 : 4;
       
-      if (metrics.maxDrawdown > maxDDLimit && !processedAlerts.has(maxDDKey)) {
+      // Only check max DD if there's a limit (Elite has no max DD limit)
+      if (maxDDLimit !== null && metrics.maxDrawdown > maxDDLimit && !processedAlerts.has(maxDDKey)) {
         newAlerts.push({
           id: maxDDKey,
           type: 'breach',
@@ -624,18 +623,23 @@ export default function AdminAccountsPage() {
       const isFunded = config.step === 3 || config.status === 'funded';
       
       if (isFunded) {
-        // Special checks for funded accounts
+        // Special checks for funded accounts based on account type
+        // 1-step funded: 8% max DD, 5% daily DD
+        // Elite funded: NO max DD, 10% trailing daily DD
         const fundedMaxDDKey = `${account.uid}-funded-maxdd-${metrics.maxDrawdown?.toFixed(2)}`;
         const fundedRiskKey = `${account.uid}-funded-risk-${(metrics.maxDailyDrawdown || metrics.dailyDrawdown)?.toFixed(2)}`;
         
-        // Check for funded account max drawdown breach (15%)
-        if (metrics.maxDrawdown > 15 && !processedAlerts.has(fundedMaxDDKey)) {
+        const fundedMaxDD = config.accountType === '1-step' ? 8 : null; // Elite has no max DD
+        const fundedDailyDD = config.accountType === '1-step' ? 5 : 10; // 1-step: 5%, Elite: 10%
+        
+        // Check for funded account max drawdown breach (only for 1-step)
+        if (fundedMaxDD !== null && metrics.maxDrawdown > fundedMaxDD && !processedAlerts.has(fundedMaxDDKey)) {
           newAlerts.push({
             id: fundedMaxDDKey,
             type: 'breach',
             accountId: config.accountId,
             userEmail: account.email,
-            message: `Funded account max drawdown breach: ${metrics.maxDrawdown.toFixed(2)}% (limit: 15%)`,
+            message: `Funded account max drawdown breach: ${metrics.maxDrawdown.toFixed(2)}% (limit: ${fundedMaxDD}%)`,
             timestamp: new Date(),
             read: false
           });
@@ -648,14 +652,14 @@ export default function AdminAccountsPage() {
           });
         }
         
-        // Check for funded account daily drawdown breach (8%)
-        if ((metrics.maxDailyDrawdown || metrics.dailyDrawdown) > 8 && !processedAlerts.has(fundedRiskKey)) {
+        // Check for funded account daily drawdown breach
+        if ((metrics.maxDailyDrawdown || metrics.dailyDrawdown) > fundedDailyDD && !processedAlerts.has(fundedRiskKey)) {
           newAlerts.push({
             id: fundedRiskKey,
             type: 'breach',
             accountId: config.accountId,
             userEmail: account.email,
-            message: `Funded account daily drawdown breach: ${(metrics.maxDailyDrawdown || metrics.dailyDrawdown).toFixed(2)}% (limit: 8%)`,
+            message: `Funded account daily drawdown breach: ${(metrics.maxDailyDrawdown || metrics.dailyDrawdown).toFixed(2)}% (limit: ${fundedDailyDD}%)`,
             timestamp: new Date(),
             read: false
           });
@@ -666,28 +670,9 @@ export default function AdminAccountsPage() {
           });
         }
         
-        // Check for funded account risk violation (daily drawdown > 2% means risking more than 2%)
-        const fundedRiskViolationKey = `${account.uid}-funded-risk-violation-${(metrics.maxDailyDrawdown || metrics.dailyDrawdown)?.toFixed(2)}`;
-        if ((metrics.maxDailyDrawdown || metrics.dailyDrawdown) > 2 && (metrics.maxDailyDrawdown || metrics.dailyDrawdown) < 8 && !processedAlerts.has(fundedRiskViolationKey)) {
-          newAlerts.push({
-            id: fundedRiskViolationKey,
-            type: 'warning',
-            accountId: config.accountId,
-            userEmail: account.email,
-            message: `Funded account risk violation: Daily drawdown of ${(metrics.maxDailyDrawdown || metrics.dailyDrawdown).toFixed(2)}% indicates risking more than 2% (violation)`,
-            timestamp: new Date(),
-            read: false
-          });
-          setProcessedAlerts(prev => {
-            const newSet = new Set(prev).add(fundedRiskViolationKey);
-            localStorage.setItem('processedAlerts', JSON.stringify(Array.from(newSet)));
-            return newSet;
-          });
-        }
-        
-        // Warning for approaching funded account limits
+        // Warning for approaching funded account limits (only for 1-step with max DD)
         const fundedWarningKey = `${account.uid}-funded-warning-${metrics.maxDrawdown?.toFixed(2)}`;
-        if (metrics.maxDrawdown > 12 && metrics.maxDrawdown <= 15 && !processedAlerts.has(fundedWarningKey)) {
+        if (fundedMaxDD !== null && metrics.maxDrawdown > (fundedMaxDD * 0.75) && metrics.maxDrawdown <= fundedMaxDD && !processedAlerts.has(fundedWarningKey)) {
           newAlerts.push({
             id: fundedWarningKey,
             type: 'warning',
@@ -705,13 +690,11 @@ export default function AdminAccountsPage() {
         }
       } else {
         // Regular challenge account checks
-        const targetProfit = config.accountType === '1-step' ? 10 :  // 1-step: 10%
-                           config.accountType === 'gauntlet' ? 10 :  // Gauntlet: 10%
-                           config.accountType === 'standard' 
-          ? (config.step === 1 ? 10 : 5)  // Standard: Step 1 = 10%, Step 2 = 5%
-          : 12;  // Instant: 12%
+        // 1-step: 8% profit target, Elite: 10% profit target
+        const targetProfit = config.accountType === '1-step' ? 8 : 
+                           config.accountType === 'elite' ? 10 : 8;
       
-      const minTradingDays = config.accountType === 'gauntlet' ? 0 : 5;
+      const minTradingDays = 0; // No minimum trading days for either challenge type
       const currentTradingDays = metrics.tradingDays || 0;
       const hasMetTradingDays = currentTradingDays >= minTradingDays;
       
@@ -742,12 +725,11 @@ export default function AdminAccountsPage() {
       }
       
       // Warning for approaching limits - adjusted for new challenge types
-      const warningThreshold = config.accountType === '1-step' ? 6 :    // 75% of 8%
-                              config.accountType === 'instant' ? 3 :    // 75% of 4%
-                              config.accountType === 'gauntlet' ? 12 :   // 80% of 15%
-                              config.accountType === 'standard' ? 12 : 12; // 80% of 15%
+      // 1-step: warning at 4.5% (75% of 6%), Elite: no max DD warning
+      const warningThreshold = config.accountType === '1-step' ? 4.5 : null; // Elite has no max DD
       
-      if (metrics.maxDrawdown > warningThreshold && 
+      if (warningThreshold !== null && maxDDLimit !== null &&
+          metrics.maxDrawdown > warningThreshold && 
           metrics.maxDrawdown < maxDDLimit &&
           !processedAlerts.has(warningKey)) {
         newAlerts.push({
@@ -930,11 +912,11 @@ export default function AdminAccountsPage() {
           // Sort by email Z-A
           return (b.email || '').localeCompare(a.email || '');
           
-        case 'account-type':
-          // Sort by account type (instant first, then standard)
-          const aType = aConfig?.accountType === 'instant' ? 1 : 0;
-          const bType = bConfig?.accountType === 'instant' ? 1 : 0;
-          return bType - aType;
+          case 'account-type':
+            // Sort by account type (elite first, then 1-step)
+            const aType = aConfig?.accountType === 'elite' ? 1 : 0;
+            const bType = bConfig?.accountType === 'elite' ? 1 : 0;
+            return bType - aType;
           
         case 'balance-high':
           // Sort by balance (highest first)
@@ -1268,16 +1250,13 @@ export default function AdminAccountsPage() {
   const accountSizes = [5000, 10000, 25000, 50000, 100000, 200000];
 
   // Account sizes based on type
-  const standardAccountSizes = [5000, 10000, 25000, 50000, 100000, 200000, 500000];
-  const instantAccountSizes = [25000, 50000, 100000];
-  const oneStepAccountSizes = [5000, 10000, 25000, 50000, 100000, 200000, 500000]; // Same sizes as standard
-  const gauntletAccountSizes = [10000, 25000, 50000, 100000, 200000]; // Gauntlet specific sizes
+  const oneStepAccountSizes = [5000, 10000, 25000, 50000, 100000, 200000, 500000];
+  const eliteAccountSizes = [10000, 25000, 50000, 100000, 200000, 500000];
   
-  const getAccountSizes = (accountType: 'standard' | 'instant' | '1-step' | 'gauntlet' | 'funded') => {
-    if (accountType === 'funded') return standardAccountSizes; // Funded uses standard sizes
-    if (accountType === '1-step') return oneStepAccountSizes;
-    if (accountType === 'gauntlet') return gauntletAccountSizes;
-    return accountType === 'standard' ? standardAccountSizes : instantAccountSizes;
+  const getAccountSizes = (accountType: '1-step' | 'elite' | 'funded') => {
+    if (accountType === 'funded') return oneStepAccountSizes; // Funded uses 1-step sizes
+    if (accountType === 'elite') return eliteAccountSizes;
+    return oneStepAccountSizes; // 1-step sizes
   };
 
   // Calculate overview statistics
@@ -1318,8 +1297,7 @@ export default function AdminAccountsPage() {
     if (!account.metaApiAccount) return;
     
     const { accountType, step, accountSize } = account.metaApiAccount;
-    const isStandard = accountType === 'standard';
-    const stepText = isStandard ? (step === 1 ? 'Step 1' : 'Step 2') : 'Instant Challenge';
+    const stepText = step === 3 ? 'Funded' : 'Challenge';
     
       const response = await fetch('/api/send-challenge-emails', {
         method: 'POST',
@@ -1352,24 +1330,23 @@ export default function AdminAccountsPage() {
     const metrics = account.cachedMetrics;
     
     // Determine breach type based on challenge type
+    // 1-step: 6% static max DD, 4% daily loss
+    // Elite: NO max DD, 10% trailing daily loss
     let breachType = '';
-    let maxDDLimit: number;
-    let dailyDDLimit: number | null;
+    let maxDDLimit: number | null;
+    let dailyDDLimit: number;
     
     if (accountType === '1-step') {
-      maxDDLimit = 8;
+      maxDDLimit = 6;
       dailyDDLimit = 4;
-    } else if (accountType === 'instant') {
-      maxDDLimit = 4;
-      dailyDDLimit = null; // No daily limit for instant
     } else {
-      // Standard challenge
-      maxDDLimit = 15;
-      dailyDDLimit = 8;
+      // Elite challenge - no max DD limit
+      maxDDLimit = null;
+      dailyDDLimit = 10;
     }
     
-    const maxDDBreached = metrics?.maxDrawdown > maxDDLimit;
-    const dailyDDBreached = dailyDDLimit !== null && (metrics?.maxDailyDrawdown || metrics?.dailyDrawdown) > dailyDDLimit;
+    const maxDDBreached = maxDDLimit !== null && metrics?.maxDrawdown > maxDDLimit;
+    const dailyDDBreached = (metrics?.maxDailyDrawdown || metrics?.dailyDrawdown) > dailyDDLimit;
     
     if (maxDDBreached && dailyDDBreached) {
       breachType = 'both';
@@ -1702,122 +1679,36 @@ export default function AdminAccountsPage() {
     setSendingCredentialsEmail(true);
     
     try {
-      // Create the email template with the login credentials
-      const loginTemplate = {
-        id: Date.now(),
-        name: 'Login Credentials',
-        subject: 'Challenge Login Details - Exodus Capital',
-        body: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Challenge Login Details - Exodus Capital</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 0;">
-    <tr>
-      <td bgcolor="exodus-light-blue" align="center" style="padding: 30px 20px;">
-        <h1 style="color: #0D0D0D; margin: 0; font-size: 28px;">Exodus Capital</h1>
-      </td>
-    </tr>
-    <tr>
-      <td bgcolor="#f4f4f4" align="center" style="padding: 20px;">
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
-          <tr>
-            <td bgcolor="#ffffff" style="padding: 40px; border-radius: 8px;">
-              <h1 style="font-size: 28px; font-weight: 700; color: #1a1a1a; margin: 0 0 20px 0;">Your Trading Challenge Details</h1>
-              <p style="margin: 0 0 20px 0; color: #444;">Hello {{firstName}},</p>
-              <p style="margin: 0 0 25px 0; color: #444;">Welcome to Exodus Capital! Your trading challenge account has been successfully set up. Below are your login credentials and setup instructions.</p>
-              
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
-                <tr>
-                  <td colspan="2" style="background: exodus-light-blue; color: #1a1a1a; font-size: 18px; font-weight: 700; text-align: center; padding: 20px; border-radius: 8px 8px 0 0;">
-                    Your Trading Account Credentials
-                  </td>
-                </tr>
-                <tr style="border-bottom: 1px solid #E5E5E5;">
-                  <td bgcolor="#fafafa" style="width: 35%; color: #1a1a1a; font-weight: 600; font-size: 14px; padding: 15px; border: 1px solid #E5E5E5;">
-                    Platform:
-                  </td>
-                  <td style="color: #1a1a1a; font-weight: 600; font-family: monospace; font-size: 14px; background: rgba(15, 241, 206, 0.1); padding: 15px; border: 1px solid #E5E5E5;">
-                    {{platform}}
-                  </td>
-                </tr>
-                <tr style="border-bottom: 1px solid #E5E5E5;">
-                  <td bgcolor="#fafafa" style="width: 35%; color: #1a1a1a; font-weight: 600; font-size: 14px; padding: 15px; border: 1px solid #E5E5E5;">
-                    Login ID:
-                  </td>
-                  <td style="color: #1a1a1a; font-weight: 600; font-family: monospace; font-size: 14px; background: rgba(15, 241, 206, 0.1); padding: 15px; border: 1px solid #E5E5E5;">
-                    {{loginId}}
-                  </td>
-                </tr>
-                <tr style="border-bottom: 1px solid #E5E5E5;">
-                  <td bgcolor="#fafafa" style="width: 35%; color: #1a1a1a; font-weight: 600; font-size: 14px; padding: 15px; border: 1px solid #E5E5E5;">
-                    Password:
-                  </td>
-                  <td style="color: #1a1a1a; font-weight: 600; font-family: monospace; font-size: 14px; background: rgba(15, 241, 206, 0.1); padding: 15px; border: 1px solid #E5E5E5;">
-                    {{password}}
-                  </td>
-                </tr>
-                <tr>
-                  <td bgcolor="#fafafa" style="width: 35%; color: #1a1a1a; font-weight: 600; font-size: 14px; border-radius: 0 0 0 8px; padding: 15px; border: 1px solid #E5E5E5;">
-                    Server:
-                  </td>
-                  <td style="color: #1a1a1a; font-weight: 600; font-family: monospace; font-size: 14px; background: rgba(15, 241, 206, 0.1); border-radius: 0 0 8px 0; padding: 15px; border: 1px solid #E5E5E5;">
-                    {{server}}
-                  </td>
-                </tr>
-              </table>
-              
-              <div style="text-align: center; margin: 40px 0;">
-                <a href="https://exodus-capital.com" style="display: inline-block; background-color: #1a1a1a; color: exodus-light-blue; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">START TRADING</a>
-              </div>
-              
-              <h3 style="color: #444; font-size: 20px; font-weight: 600; margin: 0 0 20px 0;">Getting Started</h3>
-              <ol style="margin: 0; padding-left: 20px; color: #444;">
-                <li style="margin-bottom: 12px;">Download and install the {{platform}} trading platform</li>
-                <li style="margin-bottom: 12px;">Use the credentials above to log in</li>
-                <li style="margin-bottom: 12px;">Review the challenge rules thoroughly</li>
-                <li style="margin-bottom: 12px;">Start trading with your defined strategy</li>
-              </ol>
-              
-              <p style="margin-top: 40px; margin-bottom: 0;">Best regards,</p>
-              <p style="margin-top: 5px;"><strong>The Exodus Capital Team</strong></p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`,
-        variables: ['firstName', 'platform', 'loginId', 'password', 'server']
-      };
+      // Determine the challenge type label for email
+      const isFunded = accountForm.step === 3;
+      const challengeTypeLabel = isFunded 
+        ? (accountForm.accountType === 'elite' ? 'Elite Funded' : '1-Step Funded')
+        : (accountForm.accountType === 'elite' ? 'Elite Challenge' : '1-Step Challenge');
       
-      // Prepare test values with the actual login credentials
-      const testValues = {
-        firstName: searchedUser.firstName || searchedUser.displayName?.split(' ')[0] || searchedUser.email.split('@')[0],
-        platform: connectModalData.step1.platform === 'mt5' ? 'MetaTrader 5' : 'MetaTrader 4',
-        loginId: connectModalData.step1.login,
-        password: connectModalData.step1.password,
-        server: connectModalData.step1.server
-      };
-      
+      // Send email using the correct API format
       const response = await fetch('/api/send-template-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          template: loginTemplate,
-          user: searchedUser,
-          testValues
+          to: searchedUser.email,
+          subject: `${challengeTypeLabel} Login Details - Exodus`,
+          templateVars: {
+            '{CUSTOMER_NAME}': searchedUser.firstName || searchedUser.displayName?.split(' ')[0] || searchedUser.email.split('@')[0],
+            '{PLATFORM}': connectModalData.step1.platform === 'mt5' ? 'MetaTrader 5' : 'MetaTrader 4',
+            '{LOGIN}': connectModalData.step1.login,
+            '{PASSWORD}': connectModalData.step1.password,
+            '{SERVER}': connectModalData.step1.server,
+            '{ACCOUNT_SIZE}': `$${accountForm.accountSize.toLocaleString()}`,
+            '{CHALLENGE_TYPE}': challengeTypeLabel
+          }
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send email');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send email');
       }
 
       setConnectModalData(prev => ({
@@ -1826,49 +1717,6 @@ export default function AdminAccountsPage() {
       }));
       
       setMessage({ type: 'success', text: `Login credentials email sent to ${searchedUser.email}` });
-      
-      // Send admin notification with custom email
-      try {
-        const adminNotificationBody = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
-            <h2 style="color: exodus-light-blue;">Login Credentials Sent</h2>
-            <p><strong>User Email:</strong> ${searchedUser.email}</p>
-            <p><strong>Name:</strong> ${searchedUser.firstName || searchedUser.displayName || 'N/A'}</p>
-            <p><strong>Challenge Type:</strong> ${accountForm.accountType}</p>
-            <p><strong>Account Size:</strong> $${accountForm.accountSize.toLocaleString()}</p>
-            <p><strong>Platform:</strong> ${connectModalData.step1.platform.toUpperCase()}</p>
-            <p><strong>Server:</strong> ${connectModalData.step1.server}</p>
-            <p style="margin-top: 20px; padding: 15px; background-color: #e7f5ff; border: 1px solid #bee3f8; border-radius: 5px;">
-              Login credentials have been successfully sent to the user. The account is now ready for trading.
-            </p>
-          </div>
-        `;
-        
-        // Use the general template email API instead of challenge email API
-        const adminResponse = await fetch('/api/send-template-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            template: {
-              id: Date.now(),
-              name: 'Admin Notification',
-              subject: `Login Credentials Sent: ${searchedUser.email}`,
-              body: adminNotificationBody,
-              variables: []
-            },
-            user: { email: 'support@exodus-capital.com' },
-            testValues: {}
-          }),
-        });
-        
-        if (!adminResponse.ok) {
-          console.error('Failed to send admin notification');
-        }
-      } catch (error) {
-        console.error('Error sending admin notification:', error);
-      }
       
       // Close modal and reset after 2 seconds
       setTimeout(() => {
@@ -1895,7 +1743,7 @@ export default function AdminAccountsPage() {
       }, 2000);
     } catch (error) {
       console.error('Error sending login credentials email:', error);
-      setMessage({ type: 'error', text: 'Failed to send login credentials email' });
+      setMessage({ type: 'error', text: `Failed to send login credentials email: ${error instanceof Error ? error.message : 'Unknown error'}` });
     } finally {
       setSendingCredentialsEmail(false);
     }
@@ -1969,7 +1817,7 @@ export default function AdminAccountsPage() {
               setAccountForm({
                 accountId: '',
                 accountToken: '',
-                accountType: 'standard' as 'standard' | 'instant' | '1-step' | 'gauntlet',
+                accountType: '1-step' as '1-step' | 'elite',
                 accountSize: 10000,
                 platform: 'mt5' as 'mt4' | 'mt5',
                 status: 'active' as 'active' | 'inactive' | 'passed' | 'failed' | 'funded',
@@ -1989,7 +1837,7 @@ export default function AdminAccountsPage() {
               setAccountForm({
                 accountId: '',
                 accountToken: '',
-                accountType: 'standard' as 'standard' | 'instant' | '1-step' | 'gauntlet',
+                accountType: '1-step' as '1-step' | 'elite',
                 accountSize: 10000,
                 platform: 'mt5' as 'mt4' | 'mt5',
                 status: 'active' as 'active' | 'inactive' | 'passed' | 'failed' | 'funded',
@@ -2442,19 +2290,20 @@ export default function AdminAccountsPage() {
                 {filteredAccounts.map((account) => {
                   const metrics = account.cachedMetrics;
                   const config = account.metaApiAccount;
+                  // 1-step: 6% static max DD, 4% daily loss
+                  // Elite: NO max DD, 10% trailing daily loss
+                  const maxDDLimit = config?.accountType === '1-step' ? 6 : null; // Elite has no max DD
+                  const dailyDDLimit = config?.accountType === '1-step' ? 4 : 10;
                   const isBreached = metrics && (
-                    metrics.maxDrawdown > (config?.accountType === 'standard' ? 15 : config?.accountType === 'gauntlet' ? 15 : config?.accountType === '1-step' ? 8 : 4) ||
-                    (metrics.maxDailyDrawdown || metrics.dailyDrawdown) > (config?.accountType === 'standard' ? 8 : config?.accountType === 'gauntlet' ? 8 : config?.accountType === '1-step' ? 4 : 999)
+                    (maxDDLimit !== null && metrics.maxDrawdown > maxDDLimit) ||
+                    (metrics.maxDailyDrawdown || metrics.dailyDrawdown) > dailyDDLimit
                   );
                   
                   // Check if account has passed objectives
                   const profitPercent = config && metrics ? ((metrics.balance - config.accountSize) / config.accountSize * 100) : 0;
-                  const targetProfit = config?.accountType === '1-step' ? 10 :
-                                     config?.accountType === 'gauntlet' ? 10 : // Gauntlet: 10%
-                                     config?.accountType === 'standard' 
-                                       ? (config.step === 1 ? 10 : 5)
-                                       : 12; // Instant: 12%
-                  const minTradingDays = config?.accountType === 'gauntlet' ? 0 : 5; // Gauntlet has 0 min trading days
+                  // 1-step: 8% profit target, Elite: 10% profit target
+                  const targetProfit = config?.accountType === '1-step' ? 8 : 10;
+                  const minTradingDays = 0; // No minimum trading days for either type
                   const currentTradingDays = metrics?.tradingDays || 0;
                   const hasPassed = config?.status === 'passed' || 
                                   (config?.status === 'active' && profitPercent >= targetProfit && !isBreached && currentTradingDays >= minTradingDays);
@@ -2510,11 +2359,8 @@ export default function AdminAccountsPage() {
                           <Shield size={14} className="text-gray-400" />
                           <span className="text-sm text-gray-300">
                             {config?.accountType === '1-step' ? '1-Step' : 
-                             config?.accountType === 'gauntlet' ? 'Gauntlet' :
-                             config?.accountType === 'standard' ? 'Standard' : 'Instant'}
-                            {config?.step && ` - ${config.step === 3 ? 'Funded' : 
-                                                  (config.accountType === '1-step' || config.accountType === 'gauntlet') ? 'Challenge' : 
-                                                  `Step ${config.step}`}`}
+                             config?.accountType === 'elite' ? 'Elite' : '1-Step'}
+                            {config?.step && ` - ${config.step === 3 ? 'Funded' : 'Challenge'}`}
                           </span>
                         </div>
                       </td>
@@ -2564,58 +2410,66 @@ export default function AdminAccountsPage() {
                       </td>
                       <td className="p-4">
                         <div className="text-right">
+                          {/* 1-step: 6% max DD, Elite: NO max DD limit */}
+                          {config?.accountType === 'elite' ? (
+                            <p className="text-sm font-medium text-gray-400">
+                              N/A
+                            </p>
+                          ) : (
                           <div className="flex items-center justify-end gap-2">
                             <div className="w-16">
                               <div className="h-1.5 bg-[#151515] rounded-full overflow-hidden">
                                 <div 
                                   className={`h-full transition-all duration-500 ${
-                                    metrics && metrics.maxDrawdown > (config?.accountType === 'standard' || config?.accountType === 'gauntlet' ? 15 : config?.accountType === '1-step' ? 8 : 4)
+                                    metrics && metrics.maxDrawdown > 6
                                       ? 'bg-red-400'
-                                      : metrics && metrics.maxDrawdown > (config?.accountType === 'standard' || config?.accountType === 'gauntlet' ? 12 : config?.accountType === '1-step' ? 6 : 3)
+                                      : metrics && metrics.maxDrawdown > 4.5
                                       ? 'bg-yellow-400'
                                       : 'bg-green-400'
                                   }`}
-                                  style={{ width: `${Math.min((metrics?.maxDrawdown || 0) / (config?.accountType === 'standard' || config?.accountType === 'gauntlet' ? 15 : config?.accountType === '1-step' ? 8 : 4) * 100, 100)}%` }}
+                                  style={{ width: `${Math.min((metrics?.maxDrawdown || 0) / 6 * 100, 100)}%` }}
                                 />
                               </div>
                             </div>
                             <p className={`text-sm font-medium min-w-[45px] text-right ${
-                              metrics && metrics.maxDrawdown > (config?.accountType === 'standard' || config?.accountType === 'gauntlet' ? 15 : config?.accountType === '1-step' ? 8 : 4)
+                              metrics && metrics.maxDrawdown > 6
                             ? 'text-red-400'
-                                : metrics && metrics.maxDrawdown > (config?.accountType === 'standard' || config?.accountType === 'gauntlet' ? 12 : config?.accountType === '1-step' ? 6 : 3)
+                                : metrics && metrics.maxDrawdown > 4.5
                             ? 'text-yellow-400'
                             : 'text-gray-300'
                         }`}>
                           {metrics?.maxDrawdown?.toFixed(2) || '-'}%
                         </p>
                           </div>
+                          )}
                         </div>
                       </td>
                       <td className="p-4">
                         <div className="text-right">
+                          {/* 1-step: 4% daily DD, Elite: 10% trailing daily DD */}
                           <div className="flex items-center justify-end gap-2">
                             <div className="w-16">
                               <div className="h-1.5 bg-[#151515] rounded-full overflow-hidden">
                                 <div 
                                   className={`h-full transition-all duration-500 ${
-                                    metrics && (metrics.maxDailyDrawdown || metrics.dailyDrawdown) > (config?.accountType === 'standard' || config?.accountType === 'gauntlet' ? 8 : config?.accountType === '1-step' ? 4 : 999)
+                                    metrics && (metrics.maxDailyDrawdown || metrics.dailyDrawdown) > (config?.accountType === '1-step' ? 4 : 10)
                                       ? 'bg-red-400'
-                                      : metrics && (metrics.maxDailyDrawdown || metrics.dailyDrawdown) > (config?.accountType === 'standard' || config?.accountType === 'gauntlet' ? 6 : config?.accountType === '1-step' ? 3 : 999)
+                                      : metrics && (metrics.maxDailyDrawdown || metrics.dailyDrawdown) > (config?.accountType === '1-step' ? 3 : 7.5)
                                       ? 'bg-yellow-400'
                                       : 'bg-green-400'
                                   }`}
-                                  style={{ width: config?.accountType === 'instant' ? '0%' : `${Math.min(((metrics?.maxDailyDrawdown || metrics?.dailyDrawdown || 0) / (config?.accountType === 'standard' || config?.accountType === 'gauntlet' ? 8 : 4)) * 100, 100)}%` }}
+                                  style={{ width: `${Math.min(((metrics?.maxDailyDrawdown || metrics?.dailyDrawdown || 0) / (config?.accountType === '1-step' ? 4 : 10)) * 100, 100)}%` }}
                                 />
                               </div>
                             </div>
                             <p className={`text-sm font-medium min-w-[45px] text-right ${
-                              metrics && (metrics.maxDailyDrawdown || metrics.dailyDrawdown) > (config?.accountType === 'standard' || config?.accountType === 'gauntlet' ? 8 : config?.accountType === '1-step' ? 4 : 999)
+                              metrics && (metrics.maxDailyDrawdown || metrics.dailyDrawdown) > (config?.accountType === '1-step' ? 4 : 10)
                             ? 'text-red-400'
-                                : metrics && (metrics.maxDailyDrawdown || metrics.dailyDrawdown) > (config?.accountType === 'standard' || config?.accountType === 'gauntlet' ? 6 : config?.accountType === '1-step' ? 3 : 999)
+                                : metrics && (metrics.maxDailyDrawdown || metrics.dailyDrawdown) > (config?.accountType === '1-step' ? 3 : 7.5)
                             ? 'text-yellow-400'
                             : 'text-gray-300'
                         }`}>
-                              {config?.accountType === 'instant' ? 'N/A' : `${(metrics?.maxDailyDrawdown || metrics?.dailyDrawdown)?.toFixed(2) || '-'}%`}
+                              {(metrics?.maxDailyDrawdown || metrics?.dailyDrawdown)?.toFixed(2) || '-'}%
                         </p>
                           </div>
                         </div>
@@ -2689,7 +2543,7 @@ export default function AdminAccountsPage() {
                               setAccountForm({
                                 accountId: config?.accountId || '',
                                 accountToken: config?.accountToken || '',
-                                accountType: config?.accountType || 'standard',
+                                accountType: config?.accountType || '1-step',
                                 accountSize: config?.accountSize || 10000,
                                 platform: config?.platform || 'mt5',
                                 status: config?.status || 'active',
@@ -2873,14 +2727,24 @@ export default function AdminAccountsPage() {
                     Account Type
                   </label>
                   <select
-                    value={accountForm.accountType}
+                    value={accountForm.step === 3 ? `${accountForm.accountType}-funded` : accountForm.accountType}
                     onChange={(e) => {
-                      const newType = e.target.value as 'standard' | 'instant' | '1-step' | 'gauntlet' | 'funded';
-                      // For funded accounts, set step to 3 automatically
-                      if (newType === 'funded') {
+                      const newType = e.target.value as '1-step' | 'elite' | '1-step-funded' | 'elite-funded';
+                      // For funded accounts, set step to 3 and extract base type
+                      if (newType === '1-step-funded') {
+                        const sizes = getAccountSizes('1-step');
                         setAccountForm({ 
                           ...accountForm, 
-                          accountType: 'standard', // Funded accounts use standard rules
+                          accountType: '1-step',
+                          accountSize: sizes[0],
+                          step: 3 // Step 3 indicates funded status
+                        });
+                      } else if (newType === 'elite-funded') {
+                        const sizes = getAccountSizes('elite');
+                        setAccountForm({ 
+                          ...accountForm, 
+                          accountType: 'elite',
+                          accountSize: sizes[0],
                           step: 3 // Step 3 indicates funded status
                         });
                       } else {
@@ -2895,11 +2759,10 @@ export default function AdminAccountsPage() {
                     }}
                     className="w-full bg-[#151515] border border-[#2F2F2F] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-exodus-light-blue/50"
                   >
-                    <option value="standard">Exodus Standard</option>
-                    <option value="instant">Exodus Instant</option>
-                    <option value="1-step">Exodus 1-Step</option>
-                    <option value="gauntlet">Exodus Gauntlet</option>
-                    <option value="funded">Funded Account</option>
+                    <option value="1-step">Exodus 1-Step Challenge</option>
+                    <option value="elite">Exodus Elite Challenge</option>
+                    <option value="1-step-funded">1-Step Funded</option>
+                    <option value="elite-funded">Elite Funded</option>
                   </select>
                 </div>
 
@@ -3071,9 +2934,7 @@ export default function AdminAccountsPage() {
                                   // Auto-populate account form with order details
                                   setAccountForm(prev => ({
                                     ...prev,
-                                    accountType: order.challengeType?.toLowerCase().includes('instant') ? 'instant' : 
-                                                order.challengeType?.toLowerCase().includes('1-step') ? '1-step' : 
-                                                order.challengeType?.toLowerCase().includes('gauntlet') ? 'gauntlet' : 'standard',
+                                    accountType: order.challengeType?.toLowerCase().includes('elite') ? 'elite' : '1-step',
                                     accountSize: parseInt(order.challengeAmount?.replace(/[^0-9]/g, '') || '10000'),
                                     platform: (order.platform?.toLowerCase() || 'mt5') as 'mt4' | 'mt5'
                                   }));
@@ -3185,14 +3046,24 @@ export default function AdminAccountsPage() {
                         Account Type
                       </label>
                       <select
-                        value={accountForm.accountType}
+                        value={accountForm.step === 3 ? `${accountForm.accountType}-funded` : accountForm.accountType}
                         onChange={(e) => {
-                          const newType = e.target.value as 'standard' | 'instant' | '1-step' | 'gauntlet' | 'funded';
-                          // For funded accounts, set step to 3 automatically
-                          if (newType === 'funded') {
+                          const newType = e.target.value as '1-step' | 'elite' | '1-step-funded' | 'elite-funded';
+                          // For funded accounts, set step to 3 and extract base type
+                          if (newType === '1-step-funded') {
+                            const sizes = getAccountSizes('1-step');
                             setAccountForm({ 
                               ...accountForm, 
-                              accountType: 'standard', // Funded accounts use standard rules
+                              accountType: '1-step',
+                              accountSize: sizes[0],
+                              step: 3 // Step 3 indicates funded status
+                            });
+                          } else if (newType === 'elite-funded') {
+                            const sizes = getAccountSizes('elite');
+                            setAccountForm({ 
+                              ...accountForm, 
+                              accountType: 'elite',
+                              accountSize: sizes[0],
                               step: 3 // Step 3 indicates funded status
                             });
                           } else {
@@ -3207,11 +3078,10 @@ export default function AdminAccountsPage() {
                         }}
                         className="w-full bg-[#151515] border border-[#2F2F2F] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-exodus-light-blue/50"
                       >
-                        <option value="standard">Exodus Standard</option>
-                        <option value="instant">Exodus Instant</option>
-                        <option value="1-step">Exodus 1-Step</option>
-                        <option value="gauntlet">Exodus Gauntlet</option>
-                        <option value="funded">Funded Account</option>
+                        <option value="1-step">Exodus 1-Step Challenge</option>
+                        <option value="elite">Exodus Elite Challenge</option>
+                        <option value="1-step-funded">1-Step Funded</option>
+                        <option value="elite-funded">Elite Funded</option>
                       </select>
                     </div>
 
@@ -3520,9 +3390,7 @@ export default function AdminAccountsPage() {
                                         // Auto-populate account form with order details
                                         setAccountForm(prev => ({
                                           ...prev,
-                                          accountType: order.challengeType.toLowerCase().includes('instant') ? 'instant' : 
-                                                      order.challengeType.toLowerCase().includes('1-step') ? '1-step' : 
-                                                      order.challengeType.toLowerCase().includes('gauntlet') ? 'gauntlet' : 'standard',
+                                          accountType: order.challengeType.toLowerCase().includes('elite') ? 'elite' : '1-step',
                                           accountSize: parseInt(order.challengeAmount.replace(/[^0-9]/g, '')),
                                           platform: order.platform.toLowerCase() as 'mt4' | 'mt5'
                                         }));
@@ -3630,14 +3498,24 @@ export default function AdminAccountsPage() {
                               Account Type
                             </label>
                             <select
-                              value={accountForm.accountType}
+                              value={accountForm.step === 3 ? `${accountForm.accountType}-funded` : accountForm.accountType}
                               onChange={(e) => {
-                                const newType = e.target.value as 'standard' | 'instant' | '1-step' | 'gauntlet' | 'funded';
-                                // For funded accounts, set step to 3 automatically
-                                if (newType === 'funded') {
+                                const newType = e.target.value as '1-step' | 'elite' | '1-step-funded' | 'elite-funded';
+                                // For funded accounts, set step to 3 and extract base type
+                                if (newType === '1-step-funded') {
+                                  const sizes = getAccountSizes('1-step');
                                   setAccountForm({ 
                                     ...accountForm, 
-                                    accountType: 'standard', // Funded accounts use standard rules
+                                    accountType: '1-step',
+                                    accountSize: sizes[0],
+                                    step: 3 // Step 3 indicates funded status
+                                  });
+                                } else if (newType === 'elite-funded') {
+                                  const sizes = getAccountSizes('elite');
+                                  setAccountForm({ 
+                                    ...accountForm, 
+                                    accountType: 'elite',
+                                    accountSize: sizes[0],
                                     step: 3 // Step 3 indicates funded status
                                   });
                                 } else {
@@ -3652,11 +3530,10 @@ export default function AdminAccountsPage() {
                               }}
                               className="w-full bg-[#151515] border border-[#2F2F2F] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-exodus-light-blue/50"
                             >
-                              <option value="standard">Exodus Standard</option>
-                              <option value="instant">Exodus Instant</option>
-                              <option value="1-step">Exodus 1-Step</option>
-                              <option value="gauntlet">Exodus Gauntlet</option>
-                              <option value="funded">Funded Account</option>
+                              <option value="1-step">Exodus 1-Step Challenge</option>
+                              <option value="elite">Exodus Elite Challenge</option>
+                              <option value="1-step-funded">1-Step Funded</option>
+                              <option value="elite-funded">Elite Funded</option>
                             </select>
                           </div>
 

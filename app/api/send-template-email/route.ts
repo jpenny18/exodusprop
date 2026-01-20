@@ -53,6 +53,21 @@ function generateLoginCredentialsEmail(vars: Record<string, string>): string {
   const platform = vars['{PLATFORM}'] || 'MT5';
   const accountSize = vars['{ACCOUNT_SIZE}'] || '';
   const challengeType = vars['{CHALLENGE_TYPE}'] || '1-Step Challenge';
+  
+  // Determine rules based on challenge type
+  const isElite = challengeType.toLowerCase().includes('elite');
+  const isFunded = challengeType.toLowerCase().includes('funded');
+  
+  // Challenge rules based on type
+  // 1-Step: 8% profit, 6% static max DD, 4% daily
+  // 1-Step Funded: 8% max DD, 4% daily
+  // Elite: 10% profit, NO max DD, 10% trailing daily
+  // Elite Funded: NO max DD, 10% trailing daily
+  const profitTarget = isFunded ? 'N/A (Payout eligible)' : (isElite ? '10%' : '8%');
+  const maxDrawdown = isElite ? 'None' : (isFunded ? '8%' : '6%');
+  const maxDrawdownType = isElite ? '' : ' (static)';
+  const dailyLoss = isElite ? '10%' : (isFunded ? '4%' : '4%');
+  const dailyLossType = isElite ? ' (trailing EOD)' : '';
 
   return `
 <!DOCTYPE html>
@@ -149,11 +164,11 @@ function generateLoginCredentialsEmail(vars: Record<string, string>): string {
               <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; border-radius: 8px; margin-bottom: 35px;">
                 <tr>
                   <td style="padding: 25px;">
-                    <p style="color: #1e40af; font-size: 15px; font-weight: 700; margin: 0 0 12px 0;">📊 Challenge Rules Reminder:</p>
+                    <p style="color: #1e40af; font-size: 15px; font-weight: 700; margin: 0 0 12px 0;">📊 ${challengeType} Rules:</p>
                     <ul style="color: #475569; font-size: 14px; line-height: 1.7; margin: 0; padding-left: 20px;">
-                      <li>Profit Target: <strong>8%</strong></li>
-                      <li>Maximum Drawdown: <strong>6%</strong> (static)</li>
-                      <li>Daily Loss Limit: <strong>4%</strong></li>
+                      <li>Profit Target: <strong>${profitTarget}</strong></li>
+                      <li>Maximum Drawdown: <strong>${maxDrawdown}</strong>${maxDrawdownType}</li>
+                      <li>Daily Loss Limit: <strong>${dailyLoss}</strong>${dailyLossType}</li>
                       <li>Minimum Trading Days: <strong>None</strong></li>
                     </ul>
                   </td>
