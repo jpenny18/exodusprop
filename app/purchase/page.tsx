@@ -35,18 +35,18 @@ export default function PurchasePage() {
 
   const accountConfigs = {
     onestep: [
-      { size: "$10,000", price: 109, label: "10K", planId: "plan_ngeGzBF830xlL" },
-      { size: "$25,000", price: 247, label: "25K", planId: "plan_FyRDLrDEd8ilp" },
-      { size: "$50,000", price: 399, label: "50K", planId: "plan_XB7LYZSLzaljt" },
-      { size: "$100,000", price: 699, label: "100K", planId: "plan_JJ9nO8LMXVsCD" },
-      { size: "$200,000", price: 1499, label: "200K", planId: "plan_mDL1lFqScmlUK" },
+      { size: "$10,000", price: 109, label: "10K", planId: "plan_L2kgfD521N8O7" },
+      { size: "$25,000", price: 247, label: "25K", planId: "plan_VqkvuK1fFK96P" },
+      { size: "$50,000", price: 399, label: "50K", planId: "plan_leEUVLwfqQi4x" },
+      { size: "$100,000", price: 699, label: "100K", planId: "plan_HScZOvA0kHV8o" },
+      { size: "$200,000", price: 1499, label: "200K", planId: "plan_KpXNXckIC5g1v" },
     ],
     elite: [
-      { size: "$10,000", price: 209, label: "10K", planId: "plan_TQL10iopYwgY5" },
-      { size: "$25,000", price: 599, label: "25K", planId: "plan_unGvM5aTCqyU4" },
-      { size: "$50,000", price: 799, label: "50K", planId: "plan_Mc0eXyrWMsN6w" },
-      { size: "$100,000", price: 1299, label: "100K", planId: "plan_kfWFgzIVfrJ5d" },
-      { size: "$200,000", price: 2599, label: "200K", planId: "plan_QtVFJl2muh80m" },
+      { size: "$10,000", price: 209, label: "10K", planId: "plan_uLjlFmP51kgBr" },
+      { size: "$25,000", price: 599, label: "25K", planId: "plan_bh27qwz47COB6" },
+      { size: "$50,000", price: 799, label: "50K", planId: "plan_Q0UyMK3to1m7h" },
+      { size: "$100,000", price: 1299, label: "100K", planId: "plan_iGUJ1iZ8ahrEU" },
+      { size: "$200,000", price: 2599, label: "200K", planId: "plan_1WMkRt3YWUj8I" },
     ]
   };
 
@@ -758,8 +758,8 @@ export default function PurchasePage() {
                 </div>
 
                 {/* Purchase Buttons */}
-                {/* Credit Card Payment - Hidden */}
-                {/* <button
+                {/* Credit Card Payment - Enabled */}
+                <button
                   type="submit"
                   disabled={!isFormValid() || isSubmitting}
                   className={`w-full mt-6 py-3 md:py-4 rounded-lg font-bold text-base md:text-lg transition shadow-lg ${
@@ -777,7 +777,7 @@ export default function PurchasePage() {
                       Processing...
                     </span>
                   ) : isFormValid() ? (
-                    `PAY WITH CARD - $${accounts[selectedAccount].price}`
+                    `PAY WITH CREDIT/CARD VIA WHOP - $${accounts[selectedAccount].price}`
                   ) : (
                     "COMPLETE ALL FIELDS TO CONTINUE"
                   )}
@@ -785,7 +785,7 @@ export default function PurchasePage() {
 
                 <p className="text-center text-gray-400 text-xs mt-4">
                   Secure checkout
-                </p> */}
+                </p>
 
                 {/* Crypto Payment Button - Now Primary */}
                 <button
