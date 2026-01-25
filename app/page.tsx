@@ -310,7 +310,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           
           {/* Main Hero Image */}
-          <div className="relative mb-6 md:mb-8 md:-mt-[200px] -mt-[75px] md:-mt-[200px]">
+          <div className="relative mb-6 md:mb-8 -mt-[75px] md:-mt-[200px]">
             <div className="relative w-full max-w-4xl mx-auto aspect-[16/9]">
               <Image
                 src="/exodushero.png"
@@ -1088,12 +1088,254 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Subscription Plans Section */}
+      <section className="py-20 px-4 bg-exodus-dark relative">
+        <div className="max-w-7xl mx-auto">
+          {/* Step 1: Choose Your Plan */}
+          <div className="relative">
+            {/* Step Number and Header */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="bg-exodus-light-blue rounded-full w-12 h-12 flex items-center justify-center">
+                <span className="text-white text-2xl font-bold">1</span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white">Choose Your Plan</h2>
+            </div>
+
+            {/* Explanatory Card */}
+            <div className="max-w-4xl mx-auto mb-12">
+              <div 
+                className="rounded-2xl p-8 md:p-10 border-2 border-exodus-light-blue/30 bg-gradient-to-br from-exodus-light-blue/10 to-transparent"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-300 text-base">Unlimited retries</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-300 text-base">No obligation to activate funded account</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-300 text-base">An active account occupies a slot until failed or expired</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-300 text-base">Retries and accounts are available only while the subscription is active. Cancelling pauses access</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Three Subscription Tier Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4 md:px-0">
+              {/* Entry Tier */}
+              <div 
+                className="rounded-2xl p-6 md:p-8 border-2 transition-all duration-300 hover:border-exodus-light-blue/50 hover:shadow-xl hover:shadow-exodus-light-blue/20"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                  borderColor: 'color-mix(in oklab, white 12%, transparent)'
+                }}
+              >
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Entry</h3>
+                  <div className="flex items-baseline justify-center gap-1 mb-4">
+                    <span className="text-4xl md:text-5xl font-extrabold text-exodus-light-blue">$49</span>
+                    <span className="text-gray-400 text-lg">/mo</span>
+                  </div>
+                  <p className="text-gray-300 text-sm">Perfect for beginners</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">1 Active Account</p>
+                      <p className="text-gray-400 text-sm">Manage one funded account at a time</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">All Account Sizes</p>
+                      <p className="text-gray-400 text-sm">Choose from $10K to $200K</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">Both Challenge Types</p>
+                      <p className="text-gray-400 text-sm">1-Step or Elite challenges</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Builder Tier */}
+              <div 
+                className="rounded-2xl p-6 md:p-8 border-2 border-exodus-light-blue/50 relative transition-all duration-300 hover:shadow-2xl hover:shadow-exodus-light-blue/30"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 6%, transparent)',
+                }}
+              >
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-exodus-light-blue text-white text-xs font-bold px-4 py-1 rounded-full">
+                    POPULAR
+                  </span>
+                </div>
+
+                <div className="text-center mb-6 pt-2">
+                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Builder</h3>
+                  <div className="flex items-baseline justify-center gap-1 mb-4">
+                    <span className="text-4xl md:text-5xl font-extrabold text-exodus-light-blue">$99</span>
+                    <span className="text-gray-400 text-lg">/mo</span>
+                  </div>
+                  <p className="text-gray-300 text-sm">Scale your trading</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">2 Active Accounts</p>
+                      <p className="text-gray-400 text-sm">Diversify across two accounts</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">All Account Sizes</p>
+                      <p className="text-gray-400 text-sm">Mix different account sizes</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">Both Challenge Types</p>
+                      <p className="text-gray-400 text-sm">Mix 1-Step and Elite challenges</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Scale Tier */}
+              <div 
+                className="rounded-2xl p-6 md:p-8 border-2 transition-all duration-300 hover:border-exodus-light-blue/50 hover:shadow-xl hover:shadow-exodus-light-blue/20"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                  borderColor: 'color-mix(in oklab, white 12%, transparent)'
+                }}
+              >
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Scale</h3>
+                  <div className="flex items-baseline justify-center gap-1 mb-4">
+                    <span className="text-4xl md:text-5xl font-extrabold text-exodus-light-blue">$199</span>
+                    <span className="text-gray-400 text-lg">/mo</span>
+                  </div>
+                  <p className="text-gray-300 text-sm">Maximum growth potential</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">5 Active Accounts</p>
+                      <p className="text-gray-400 text-sm">Manage five accounts simultaneously</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">All Account Sizes</p>
+                      <p className="text-gray-400 text-sm">Maximum flexibility in sizing</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-exodus-light-blue/20 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">Both Challenge Types</p>
+                      <p className="text-gray-400 text-sm">Complete portfolio control</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Connecting Line/Arrow */}
+            <div className="flex justify-center mt-12">
+              <div className="flex flex-col items-center">
+                <div className="w-0.5 h-16 bg-gradient-to-b from-exodus-light-blue to-transparent"></div>
+                <svg className="w-8 h-8 text-exodus-light-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing" className="py-20 px-4 bg-exodus-dark">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl md:text-5xl font-bold text-center text-white mb-8">
-            Choose Your Account Size
-          </h2>
+          {/* Step 2: Choose Your Accounts */}
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <div className="bg-exodus-light-blue rounded-full w-12 h-12 flex items-center justify-center">
+              <span className="text-white text-2xl font-bold">2</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-white">Choose Your Accounts</h2>
+          </div>
 
           {/* Plan Type Selection */}
           <div className="flex justify-center mb-8">

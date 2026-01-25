@@ -9,13 +9,20 @@ import { createUser, savePurchase, signIn } from "@/lib/auth-helpers";
 import { onAuthStateChanged } from "firebase/auth";
 import { trackViewContent, trackInitiateCheckout, trackPurchase } from "@/lib/facebookPixel";
 
+type SubscriptionTier = "entry" | "builder" | "scale";
+
+interface AccountConfig {
+  platform: "MT4" | "MT5";
+  planType: "onestep" | "elite";
+  accountBalance: number;
+}
+
 export default function PurchasePage() {
-  const [selectedAccount, setSelectedAccount] = useState(0);
+  const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionTier>("entry");
   const [showPayment, setShowPayment] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
-  const [selectedPlatform, setSelectedPlatform] = useState<"MT4" | "MT5">("MT4"); // Default to MT4
-  const [selectedPlanType, setSelectedPlanType] = useState<"onestep" | "elite">("onestep");
+  
   const [formData, setFormData] = useState({
     // Billing Info
     firstName: "",
@@ -33,24 +40,55 @@ export default function PurchasePage() {
     agreeRefundPolicy: false,
   });
 
-  const accountConfigs = {
-    onestep: [
-      { size: "$10,000", price: 109, label: "10K", planId: "plan_L2kgfD521N8O7" },
-      { size: "$25,000", price: 247, label: "25K", planId: "plan_VqkvuK1fFK96P" },
-      { size: "$50,000", price: 399, label: "50K", planId: "plan_leEUVLwfqQi4x" },
-      { size: "$100,000", price: 699, label: "100K", planId: "plan_HScZOvA0kHV8o" },
-      { size: "$200,000", price: 1499, label: "200K", planId: "plan_KpXNXckIC5g1v" },
-    ],
-    elite: [
-      { size: "$10,000", price: 209, label: "10K", planId: "plan_uLjlFmP51kgBr" },
-      { size: "$25,000", price: 599, label: "25K", planId: "plan_bh27qwz47COB6" },
-      { size: "$50,000", price: 799, label: "50K", planId: "plan_Q0UyMK3to1m7h" },
-      { size: "$100,000", price: 1299, label: "100K", planId: "plan_iGUJ1iZ8ahrEU" },
-      { size: "$200,000", price: 2599, label: "200K", planId: "plan_1WMkRt3YWUj8I" },
-    ]
+  // Account configurations for each subscription tier
+  const [accounts, setAccounts] = useState<AccountConfig[]>([
+    { platform: "MT4", planType: "onestep", accountBalance: 0 } // Entry tier default
+  ]);
+
+  const subscriptionTiers = {
+    entry: {
+      name: "Entry",
+      price: 49,
+      accountCount: 1,
+      planId: "plan_M7oLmQ2ac5SQo"
+    },
+    builder: {
+      name: "Builder",
+      price: 99,
+      accountCount: 2,
+      planId: "plan_u7VCzLERALfpG"
+    },
+    scale: {
+      name: "Scale",
+      price: 199,
+      accountCount: 5,
+      planId: "plan_Egri3DcdLamdg"
+    }
   };
 
-  const accounts = accountConfigs[selectedPlanType];
+  const accountBalances = [
+    { size: "$10,000", value: 10000, label: "10K" },
+    { size: "$25,000", value: 25000, label: "25K" },
+    { size: "$50,000", value: 50000, label: "50K" },
+    { size: "$100,000", value: 100000, label: "100K" },
+    { size: "$200,000", value: 200000, label: "200K" },
+  ];
+
+  // Update accounts array when subscription tier changes
+  useEffect(() => {
+    const tierConfig = subscriptionTiers[selectedSubscription];
+    const newAccounts: AccountConfig[] = [];
+    
+    for (let i = 0; i < tierConfig.accountCount; i++) {
+      newAccounts.push({
+        platform: accounts[i]?.platform || "MT4",
+        planType: accounts[i]?.planType || "onestep",
+        accountBalance: accounts[i]?.accountBalance || 0
+      });
+    }
+    
+    setAccounts(newAccounts);
+  }, [selectedSubscription]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -60,6 +98,14 @@ export default function PurchasePage() {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleAccountChange = (index: number, field: keyof AccountConfig, value: any) => {
+    setAccounts(prev => {
+      const newAccounts = [...prev];
+      newAccounts[index] = { ...newAccounts[index], [field]: value };
+      return newAccounts;
+    });
   };
 
   // Check if all required fields are filled
@@ -73,14 +119,16 @@ export default function PurchasePage() {
       formData.state.trim() !== "" &&
       formData.country.trim() !== "" &&
       formData.postalCode.trim() !== "";
-    // Note: selectedPlatform always has a value (defaults to MT4), so no need to validate
     
     const allCheckboxesChecked = 
       formData.agreeTerms &&
       formData.agreeProgramRules &&
       formData.agreeRefundPolicy;
 
-    return allFieldsFilled && allCheckboxesChecked;
+    // Check that all accounts have a valid balance selected
+    const allAccountsValid = accounts.every(acc => acc.accountBalance > 0);
+
+    return allFieldsFilled && allCheckboxesChecked && allAccountsValid;
   };
 
   // Handle "PAY WITH CARD" button - saves order to Firebase FIRST, then shows Whop
@@ -93,17 +141,29 @@ export default function PurchasePage() {
     try {
       // Generate a unique order ID for tracking
       const orderId = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const tierConfig = subscriptionTiers[selectedSubscription];
+      
+      // Format accounts data for storage
+      const accountsData = accounts.map(acc => {
+        const balanceObj = accountBalances.find(b => b.value === acc.accountBalance);
+        return {
+          platform: acc.platform,
+          planType: acc.planType === 'onestep' ? '1-Step' : 'Elite',
+          accountBalance: balanceObj?.size || `$${acc.accountBalance.toLocaleString()}`,
+          accountBalanceValue: acc.accountBalance
+        };
+      });
       
       // Save pending order to Firebase BEFORE showing payment
       const orderData = {
-        oderId: orderId,
+        orderId: orderId,
         email: formData.email,
         customerName: `${formData.firstName} ${formData.lastName}`,
-        accountSize: accounts[selectedAccount].size,
-        accountPrice: accounts[selectedAccount].price,
-        platform: selectedPlatform,
-        planType: selectedPlanType === 'onestep' ? '1-Step' : 'Elite',
-        planId: accounts[selectedAccount].planId,
+        subscriptionTier: tierConfig.name,
+        subscriptionPrice: tierConfig.price,
+        subscriptionPlanId: tierConfig.planId,
+        accountsCount: tierConfig.accountCount,
+        accounts: accountsData,
         billingInfo: {
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -166,11 +226,25 @@ export default function PurchasePage() {
       return;
     }
 
-    // Store challenge data in sessionStorage for the payment page
+    const tierConfig = subscriptionTiers[selectedSubscription];
+    
+    // Format accounts data for crypto payment
+    const accountsData = accounts.map(acc => {
+      const balanceObj = accountBalances.find(b => b.value === acc.accountBalance);
+      return {
+        platform: acc.platform,
+        planType: acc.planType === 'onestep' ? '1-Step' : 'Elite',
+        accountBalance: balanceObj?.size || `$${acc.accountBalance.toLocaleString()}`,
+        accountBalanceValue: acc.accountBalance
+      };
+    });
+
+    // Store subscription and challenge data in sessionStorage for the payment page
     const challengeData = {
-      type: selectedPlanType === 'onestep' ? '1-Step' : 'Elite',
-      amount: accounts[selectedAccount].size,
-      platform: selectedPlatform,
+      subscriptionTier: tierConfig.name,
+      subscriptionPrice: tierConfig.price,
+      accountsCount: tierConfig.accountCount,
+      accounts: accountsData,
       formData: {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -179,7 +253,7 @@ export default function PurchasePage() {
         country: formData.country,
         discordUsername: ''
       },
-      price: accounts[selectedAccount].price,
+      price: tierConfig.price,
       addOns: []
     };
 
@@ -190,8 +264,10 @@ export default function PurchasePage() {
   // Handle when Whop payment completes successfully
   const handlePaymentComplete = async (planId: string, receiptId?: string) => {
     try {
+      const tierConfig = subscriptionTiers[selectedSubscription];
+      
       // Track successful purchase with Meta Pixel
-      trackPurchase(accounts[selectedAccount].price, "USD");
+      trackPurchase(tierConfig.price, "USD");
       
       // Update the pending order to completed via API
       if (pendingOrderId) {
@@ -250,12 +326,13 @@ export default function PurchasePage() {
 
       // Save purchase to Firebase (for backward compatibility with existing purchase tracking)
       if (userId) {
+        // Create a main purchase record for the subscription
         await savePurchase({
           userId,
           email: formData.email,
-          accountSize: accounts[selectedAccount].size,
-          accountPrice: accounts[selectedAccount].price,
-          platform: selectedPlatform as "MT4" | "MT5",
+          accountSize: `${tierConfig.name} Subscription (${tierConfig.accountCount} accounts)`,
+          accountPrice: tierConfig.price,
+          platform: accounts[0]?.platform as "MT4" | "MT5" || "MT4",
           planId,
           receiptId: receiptId || "N/A",
           billingInfo: {
@@ -272,16 +349,19 @@ export default function PurchasePage() {
           paymentMethod: 'card', // Whop card payment
         });
 
-        // Create pending account (credentials will be added by admin)
+        // Create pending accounts for each account in the subscription (credentials will be added by admin)
         const { createTradingAccount } = await import("@/lib/auth-helpers");
-        await createTradingAccount({
-          userId,
-          accountSize: accounts[selectedAccount].size,
-          accountType: selectedPlanType === 'onestep' ? "1-Step" : "Elite",
-          platform: selectedPlatform as "MT4" | "MT5",
-          planId,
-          receiptId: receiptId || "N/A",
-        });
+        for (const account of accounts) {
+          const balanceObj = accountBalances.find(b => b.value === account.accountBalance);
+          await createTradingAccount({
+            userId,
+            accountSize: balanceObj?.size || `$${account.accountBalance.toLocaleString()}`,
+            accountType: account.planType === 'onestep' ? "1-Step" : "Elite",
+            platform: account.platform,
+            planId,
+            receiptId: receiptId || "N/A",
+          });
+        }
 
         // Send confirmation emails to customer and admin
         try {
@@ -291,9 +371,9 @@ export default function PurchasePage() {
             body: JSON.stringify({
               customerEmail: formData.email,
               customerName: `${formData.firstName} ${formData.lastName}`,
-              accountSize: accounts[selectedAccount].size,
-              platform: selectedPlatform,
-              price: accounts[selectedAccount].price,
+              accountSize: `${tierConfig.name} Subscription (${tierConfig.accountCount} accounts)`,
+              platform: accounts[0]?.platform || "MT4",
+              price: tierConfig.price,
               paymentMethod: 'card'
             })
           });
@@ -345,16 +425,17 @@ export default function PurchasePage() {
       <nav className="relative z-10 border-b border-exodus-light-blue/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-16 md:h-20 mt-4 md:mt-8">
-            <Link href="/" className="flex items-center justify-center">
+            <span className="flex items-center justify-center cursor-default select-none">
               <Image
                 src="/logo.png"
                 alt="Exodus Logo"
                 width={200}
                 height={200}
                 priority
-                className="h-40 md:h-60 w-auto"
+                className="h-40 md:h-60 w-auto pointer-events-none select-none"
+                draggable={false}
               />
-            </Link>
+            </span>
           </div>
         </div>
       </nav>
@@ -561,105 +642,149 @@ export default function PurchasePage() {
                   Order Information
                 </h2>
 
-                {/* Plan Type Selection */}
+                {/* Subscription Tier Selection */}
                 <div className="mb-6">
                   <label className="block text-white text-sm font-semibold mb-3">
-                    Plan Type *
+                    Subscription Tier *
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPlanType("onestep")}
-                      className={`px-4 py-3 rounded-lg font-bold transition border-2 ${
-                        selectedPlanType === "onestep"
-                          ? "bg-exodus-light-blue border-exodus-light-blue text-white shadow-lg shadow-exodus-light-blue/30"
-                          : "border-white/20 text-white hover:border-exodus-light-blue/50"
-                      }`}
-                      style={{
-                        backgroundColor: selectedPlanType === "onestep" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
-                      }}
-                    >
-                      Exodus 1-Step
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPlanType("elite")}
-                      className={`px-4 py-3 rounded-lg font-bold transition border-2 ${
-                        selectedPlanType === "elite"
-                          ? "bg-exodus-light-blue border-exodus-light-blue text-white shadow-lg shadow-exodus-light-blue/30"
-                          : "border-white/20 text-white hover:border-exodus-light-blue/50"
-                      }`}
-                      style={{
-                        backgroundColor: selectedPlanType === "elite" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
-                      }}
-                    >
-                      Exodus Elite
-                    </button>
-                  </div>
-                </div>
-
-                {/* Platform Selection */}
-                <div className="mb-6">
-                  <label className="block text-white text-sm font-semibold mb-3">
-                    Trading Platform *
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPlatform("MT4")}
-                      className={`px-4 py-3 rounded-lg font-bold transition border-2 ${
-                        selectedPlatform === "MT4"
-                          ? "bg-exodus-light-blue border-exodus-light-blue text-white shadow-lg shadow-exodus-light-blue/30"
-                          : "border-white/20 text-white hover:border-exodus-light-blue/50"
-                      }`}
-                      style={{
-                        backgroundColor: selectedPlatform === "MT4" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
-                      }}
-                    >
-                      MetaTrader 4
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPlatform("MT5")}
-                      className={`px-4 py-3 rounded-lg font-bold transition border-2 ${
-                        selectedPlatform === "MT5"
-                          ? "bg-exodus-light-blue border-exodus-light-blue text-white shadow-lg shadow-exodus-light-blue/30"
-                          : "border-white/20 text-white hover:border-exodus-light-blue/50"
-                      }`}
-                      style={{
-                        backgroundColor: selectedPlatform === "MT5" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
-                      }}
-                    >
-                      MetaTrader 5
-                    </button>
-                  </div>
-                </div>
-
-                {/* Account Balance Selection */}
-                <div className="mb-6">
-                  <label className="block text-white text-sm font-semibold mb-3">
-                    Account Balance *
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {accounts.map((account, index) => (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {Object.entries(subscriptionTiers).map(([key, tier]) => (
                       <button
-                        key={index}
+                        key={key}
                         type="button"
-                        onClick={() => setSelectedAccount(index)}
-                        className={`px-4 py-3 rounded-lg font-bold transition border-2 ${
-                          index === selectedAccount
+                        onClick={() => setSelectedSubscription(key as SubscriptionTier)}
+                        className={`px-4 py-4 rounded-lg font-bold transition border-2 relative ${
+                          selectedSubscription === key
                             ? "bg-exodus-light-blue border-exodus-light-blue text-white shadow-lg shadow-exodus-light-blue/30"
                             : "border-white/20 text-white hover:border-exodus-light-blue/50"
                         }`}
                         style={{
-                          backgroundColor: index === selectedAccount ? undefined : 'color-mix(in oklab, white 5%, transparent)'
+                          backgroundColor: selectedSubscription === key ? undefined : 'color-mix(in oklab, white 5%, transparent)'
                         }}
                       >
-                        <div className="text-lg md:text-xl">{account.label}</div>
-                        <div className="text-xs text-gray-300 mt-1">{account.size}</div>
+                        <div className="text-lg md:text-xl mb-1">{tier.name}</div>
+                        <div className="text-2xl font-extrabold mb-1">${tier.price}<span className="text-sm font-normal">/mo</span></div>
+                        <div className="text-xs text-gray-300 mb-2">{tier.accountCount} active {tier.accountCount === 1 ? 'account' : 'accounts'}</div>
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Dynamic Account Forms */}
+                <div className="space-y-4 mb-6">
+                  {accounts.map((account, index) => (
+                    <div 
+                      key={index}
+                      className="rounded-lg p-4 md:p-5 border border-white/10"
+                      style={{
+                        backgroundColor: 'color-mix(in oklab, white 3%, transparent)',
+                      }}
+                    >
+                      <h3 className="text-white font-semibold mb-4 text-sm md:text-base">
+                        Account {index + 1} of {accounts.length}
+                      </h3>
+
+                      {/* Plan Type */}
+                      <div className="mb-4">
+                        <label className="block text-white text-xs font-semibold mb-2">
+                          Plan Type *
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleAccountChange(index, 'planType', 'onestep')}
+                            className={`px-3 py-2 rounded-lg text-sm font-bold transition border ${
+                              account.planType === "onestep"
+                                ? "bg-exodus-light-blue border-exodus-light-blue text-white"
+                                : "border-white/20 text-white hover:border-exodus-light-blue/50"
+                            }`}
+                            style={{
+                              backgroundColor: account.planType === "onestep" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
+                            }}
+                          >
+                            1-Step
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAccountChange(index, 'planType', 'elite')}
+                            className={`px-3 py-2 rounded-lg text-sm font-bold transition border ${
+                              account.planType === "elite"
+                                ? "bg-exodus-light-blue border-exodus-light-blue text-white"
+                                : "border-white/20 text-white hover:border-exodus-light-blue/50"
+                            }`}
+                            style={{
+                              backgroundColor: account.planType === "elite" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
+                            }}
+                          >
+                            Elite
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Platform Selection */}
+                      <div className="mb-4">
+                        <label className="block text-white text-xs font-semibold mb-2">
+                          Trading Platform *
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleAccountChange(index, 'platform', 'MT4')}
+                            className={`px-3 py-2 rounded-lg text-sm font-bold transition border ${
+                              account.platform === "MT4"
+                                ? "bg-exodus-light-blue border-exodus-light-blue text-white"
+                                : "border-white/20 text-white hover:border-exodus-light-blue/50"
+                            }`}
+                            style={{
+                              backgroundColor: account.platform === "MT4" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
+                            }}
+                          >
+                            MT4
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAccountChange(index, 'platform', 'MT5')}
+                            className={`px-3 py-2 rounded-lg text-sm font-bold transition border ${
+                              account.platform === "MT5"
+                                ? "bg-exodus-light-blue border-exodus-light-blue text-white"
+                                : "border-white/20 text-white hover:border-exodus-light-blue/50"
+                            }`}
+                            style={{
+                              backgroundColor: account.platform === "MT5" ? undefined : 'color-mix(in oklab, white 5%, transparent)'
+                            }}
+                          >
+                            MT5
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Account Balance Selection */}
+                      <div>
+                        <label className="block text-white text-xs font-semibold mb-2">
+                          Account Balance *
+                        </label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {accountBalances.map((balance) => (
+                            <button
+                              key={balance.value}
+                              type="button"
+                              onClick={() => handleAccountChange(index, 'accountBalance', balance.value)}
+                              className={`px-3 py-2 rounded-lg text-sm font-bold transition border ${
+                                account.accountBalance === balance.value
+                                  ? "bg-exodus-light-blue border-exodus-light-blue text-white"
+                                  : "border-white/20 text-white hover:border-exodus-light-blue/50"
+                              }`}
+                              style={{
+                                backgroundColor: account.accountBalance === balance.value ? undefined : 'color-mix(in oklab, white 5%, transparent)'
+                              }}
+                            >
+                              {balance.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Order Summary */}
@@ -675,17 +800,17 @@ export default function PurchasePage() {
                   <h3 className="text-white font-semibold mb-3 text-base md:text-lg">Order Summary</h3>
                   <div className="space-y-2 text-sm md:text-base">
                     <div className="flex justify-between text-gray-300">
-                      <span>Account Size:</span>
-                      <span className="text-white font-semibold">{accounts[selectedAccount].size}</span>
+                      <span>Subscription:</span>
+                      <span className="text-white font-semibold">{subscriptionTiers[selectedSubscription].name}</span>
                     </div>
                     <div className="flex justify-between text-gray-300">
-                      <span>Evaluation Type:</span>
-                      <span className="text-white font-semibold">{selectedPlanType === 'onestep' ? 'Exodus 1-Step' : 'Exodus Elite'}</span>
+                      <span>Active Accounts:</span>
+                      <span className="text-white font-semibold">{subscriptionTiers[selectedSubscription].accountCount}</span>
                     </div>
                     <div className="border-t border-white/20 my-3"></div>
                     <div className="flex justify-between text-white font-bold text-lg md:text-xl">
-                      <span>Total:</span>
-                      <span className="text-exodus-light-blue">${accounts[selectedAccount].price}</span>
+                      <span>Monthly Total:</span>
+                      <span className="text-exodus-light-blue">${subscriptionTiers[selectedSubscription].price}/mo</span>
                     </div>
                   </div>
                 </div>
@@ -777,14 +902,14 @@ export default function PurchasePage() {
                       Processing...
                     </span>
                   ) : isFormValid() ? (
-                    `PAY WITH CREDIT/CARD VIA WHOP - $${accounts[selectedAccount].price}`
+                    `PAY WITH CREDIT/CARD VIA WHOP - $${subscriptionTiers[selectedSubscription].price}/mo`
                   ) : (
                     "COMPLETE ALL FIELDS TO CONTINUE"
                   )}
                 </button>
 
                 <p className="text-center text-gray-400 text-xs mt-4">
-                  Secure checkout
+                  Secure checkout • Monthly subscription
                 </p>
 
                 {/* Crypto Payment Button - Now Primary */}
@@ -798,11 +923,11 @@ export default function PurchasePage() {
                       : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"
                   }`}
                 >
-                  {isFormValid() ? `PAY WITH CRYPTO - $${accounts[selectedAccount].price}` : "COMPLETE ALL FIELDS TO CONTINUE"}
+                  {isFormValid() ? `PAY WITH CRYPTO - $${subscriptionTiers[selectedSubscription].price}/mo` : "COMPLETE ALL FIELDS TO CONTINUE"}
                 </button>
 
                 <p className="text-center text-gray-400 text-xs mt-4">
-                  Supports BTC, ETH, USDT (TRC20), USDC (Solana)
+                  Supports BTC, ETH, USDT (TRC20), USDC (Solana) • Monthly subscription
                 </p>
               </div>
             </div>
@@ -849,12 +974,12 @@ export default function PurchasePage() {
               >
                 <div className="space-y-2 text-sm md:text-base">
                   <div className="flex justify-between text-gray-300">
-                    <span>Account Size:</span>
-                    <span className="text-white font-semibold">{accounts[selectedAccount].size}</span>
+                    <span>Subscription:</span>
+                    <span className="text-white font-semibold">{subscriptionTiers[selectedSubscription].name}</span>
                   </div>
                   <div className="flex justify-between text-gray-300">
-                    <span>Evaluation Type:</span>
-                    <span className="text-white font-semibold">{selectedPlanType === 'onestep' ? 'Exodus 1-Step' : 'Exodus Elite'}</span>
+                    <span>Active Accounts:</span>
+                    <span className="text-white font-semibold">{subscriptionTiers[selectedSubscription].accountCount}</span>
                   </div>
                   <div className="flex justify-between text-gray-300">
                     <span>Email:</span>
@@ -862,8 +987,8 @@ export default function PurchasePage() {
                   </div>
                   <div className="border-t border-white/20 my-3"></div>
                   <div className="flex justify-between text-white font-bold text-lg md:text-xl">
-                    <span>Total:</span>
-                    <span className="text-exodus-light-blue">${accounts[selectedAccount].price}</span>
+                    <span>Monthly Total:</span>
+                    <span className="text-exodus-light-blue">${subscriptionTiers[selectedSubscription].price}/mo</span>
                   </div>
                 </div>
               </div>
@@ -871,7 +996,7 @@ export default function PurchasePage() {
               {/* Whop Payment Embed */}
               <div className="min-h-[400px] rounded-lg overflow-hidden">
                 <WhopCheckoutEmbed
-                  planId={accounts[selectedAccount].planId}
+                  planId={subscriptionTiers[selectedSubscription].planId}
                   theme="dark"
                   hideAddressForm={true}
                   hideEmail={false}

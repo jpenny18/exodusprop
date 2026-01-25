@@ -6,8 +6,11 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { challengeData, cryptoDetails } = body;
 
+    // Check if this is a subscription order (new structure) or legacy single account
+    const isSubscriptionOrder = challengeData.subscriptionTier && challengeData.accounts;
+
     // Create crypto order in Firestore
-    const orderRef = await db.collection('crypto-orders').add({
+    const orderData: any = {
       status: 'PENDING',
       challengeStatus: 'PENDING', // PENDING, PROCESSING, CREDENTIALS_SENT
       cryptoType: cryptoDetails.type,
@@ -15,10 +18,6 @@ export async function POST(req: Request) {
       cryptoAddress: cryptoDetails.address,
       usdAmount: cryptoDetails.usdAmount,
       verificationPhrase: cryptoDetails.verificationPhrase,
-      challengeType: challengeData.type,
-      challengeAmount: challengeData.amount,
-      platform: challengeData.platform,
-      addOns: challengeData.addOns || [],
       customerEmail: challengeData.formData.email,
       customerName: `${challengeData.formData.firstName} ${challengeData.formData.lastName}`,
       customerPhone: challengeData.formData.phone,
@@ -29,7 +28,24 @@ export async function POST(req: Request) {
       originalAmount: challengeData.discount ? Math.round(challengeData.price / (1 - challengeData.discount.value / 100)) : challengeData.price,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    });
+    };
+
+    // Add subscription-specific or legacy fields
+    if (isSubscriptionOrder) {
+      orderData.subscriptionTier = challengeData.subscriptionTier;
+      orderData.subscriptionPrice = challengeData.subscriptionPrice;
+      orderData.accountsCount = challengeData.accountsCount;
+      orderData.accounts = challengeData.accounts;
+      orderData.addOns = challengeData.addOns || [];
+    } else {
+      // Legacy single account structure
+      orderData.challengeType = challengeData.type;
+      orderData.challengeAmount = challengeData.amount;
+      orderData.platform = challengeData.platform;
+      orderData.addOns = challengeData.addOns || [];
+    }
+
+    const orderRef = await db.collection('crypto-orders').add(orderData);
 
     return NextResponse.json({ success: true, orderId: orderRef.id });
   } catch (error) {

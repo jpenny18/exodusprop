@@ -31,9 +31,20 @@ interface CryptoOrder {
   cryptoAddress: string;
   usdAmount: number;
   verificationPhrase: string;
-  challengeType: string;
-  challengeAmount: string;
-  platform: string;
+  // Legacy single account fields
+  challengeType?: string;
+  challengeAmount?: string;
+  platform?: string;
+  // New subscription fields
+  subscriptionTier?: string;
+  subscriptionPrice?: number;
+  accountsCount?: number;
+  accounts?: Array<{
+    platform: string;
+    planType: string;
+    accountBalance: string;
+    accountBalanceValue: number;
+  }>;
   addOns?: string[];
   customerEmail: string;
   customerName: string;
@@ -437,9 +448,19 @@ export default function CryptoOrdersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="text-sm font-medium text-white">{order.challengeType}</div>
-                      <div className="text-sm text-gray-400">{order.challengeAmount}</div>
-                      <div className="text-xs text-blue-500 mt-1">{order.platform}</div>
+                      {order.subscriptionTier ? (
+                        <>
+                          <div className="text-sm font-medium text-white">{order.subscriptionTier} Subscription</div>
+                          <div className="text-sm text-gray-400">{order.accountsCount} accounts</div>
+                          <div className="text-xs text-blue-500 mt-1">Monthly subscription</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-sm font-medium text-white">{order.challengeType}</div>
+                          <div className="text-sm text-gray-400">{order.challengeAmount}</div>
+                          <div className="text-xs text-blue-500 mt-1">{order.platform}</div>
+                        </>
+                      )}
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-sm font-medium text-white">${order.usdAmount.toFixed(2)}</div>
@@ -602,22 +623,61 @@ export default function CryptoOrdersPage() {
                             </div>
                           </div>
 
-                          {/* Challenge Details */}
+                          {/* Challenge/Subscription Details */}
                           <div>
-                            <h3 className="text-blue-500 font-medium mb-2">Challenge Details</h3>
+                            <h3 className="text-blue-500 font-medium mb-2">
+                              {order.subscriptionTier ? 'Subscription Details' : 'Challenge Details'}
+                            </h3>
                             <div className="space-y-2 text-sm">
-                              <div>
-                                <div className="text-gray-400">Type</div>
-                                <div className="text-white">{order.challengeType}</div>
-                              </div>
-                              <div>
-                                <div className="text-gray-400">Amount</div>
-                                <div className="text-white">{order.challengeAmount}</div>
-                              </div>
-                              <div>
-                                <div className="text-gray-400">Platform</div>
-                                <div className="text-white">{order.platform}</div>
-                              </div>
+                              {order.subscriptionTier ? (
+                                <>
+                                  <div>
+                                    <div className="text-gray-400">Subscription Tier</div>
+                                    <div className="text-white">{order.subscriptionTier}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-gray-400">Active Accounts</div>
+                                    <div className="text-white">{order.accountsCount}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-gray-400">Monthly Price</div>
+                                    <div className="text-white">${order.subscriptionPrice?.toFixed(2) || order.usdAmount.toFixed(2)}/mo</div>
+                                  </div>
+                                  {order.accounts && order.accounts.length > 0 && (
+                                    <div>
+                                      <div className="text-gray-400 mb-2">Account Details:</div>
+                                      <div className="space-y-2">
+                                        {order.accounts.map((acc, idx) => (
+                                          <div key={idx} className="bg-gray-700/30 rounded p-2">
+                                            <div className="flex justify-between">
+                                              <span className="font-medium">Account {idx + 1}</span>
+                                              <span className="text-gray-400">{acc.accountBalance}</span>
+                                            </div>
+                                            <div className="text-xs text-gray-400 mt-1">
+                                              {acc.planType} • {acc.platform}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  <div>
+                                    <div className="text-gray-400">Type</div>
+                                    <div className="text-white">{order.challengeType}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-gray-400">Amount</div>
+                                    <div className="text-white">{order.challengeAmount}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-gray-400">Platform</div>
+                                    <div className="text-white">{order.platform}</div>
+                                  </div>
+                                </>
+                              )}
                               {order.discountCode && (
                                 <div>
                                   <div className="text-gray-400">Discount Applied</div>

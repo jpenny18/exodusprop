@@ -6,9 +6,21 @@ import { Bitcoin, Shield, RefreshCcw, HeadphonesIcon, Mail } from 'lucide-react'
 import CryptoPayment from '@/components/CryptoPayment';
 
 interface ChallengeData {
-  type: string;
-  amount: string;
-  platform: string;
+  // Legacy single account fields
+  type?: string;
+  amount?: string;
+  platform?: string;
+  // New subscription fields
+  subscriptionTier?: string;
+  subscriptionPrice?: number;
+  accountsCount?: number;
+  accounts?: Array<{
+    platform: string;
+    planType: string;
+    accountBalance: string;
+    accountBalanceValue: number;
+  }>;
+  // Common fields
   formData: {
     firstName: string;
     lastName: string;
@@ -193,25 +205,55 @@ export default function PaymentPage() {
               <h2 className="text-xl font-semibold mb-6">Order Summary</h2>
               
               <div className="mb-6">
-                <div className="flex justify-between mb-2">
-                  <span className="text-white/70">Challenge Type:</span>
-                  <span className="font-medium">{challengeData.type}</span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-white/70">Account Size:</span>
-                  <span className="font-medium">{challengeData.amount}</span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-white/70">Platform:</span>
-                  <span className="font-medium">{challengeData.platform}</span>
-                </div>
+                {challengeData.subscriptionTier ? (
+                  // New subscription structure
+                  <>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-white/70">Subscription:</span>
+                      <span className="font-medium">{challengeData.subscriptionTier}</span>
+                    </div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-white/70">Active Accounts:</span>
+                      <span className="font-medium">{challengeData.accountsCount}</span>
+                    </div>
+                    {challengeData.accounts && challengeData.accounts.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-700/50">
+                        <div className="text-white/70 text-sm mb-2">Account Details:</div>
+                        <div className="space-y-2">
+                          {challengeData.accounts.map((acc, idx) => (
+                            <div key={idx} className="text-xs bg-gray-700/30 rounded p-2">
+                              <div className="font-medium">{acc.accountBalance} • {acc.planType}</div>
+                              <div className="text-white/60">{acc.platform}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  // Legacy single account structure
+                  <>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-white/70">Challenge Type:</span>
+                      <span className="font-medium">{challengeData.type}</span>
+                    </div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-white/70">Account Size:</span>
+                      <span className="font-medium">{challengeData.amount}</span>
+                    </div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-white/70">Platform:</span>
+                      <span className="font-medium">{challengeData.platform}</span>
+                    </div>
+                  </>
+                )}
               </div>
               
               <div className="border-t border-gray-700 pt-4 mb-6">
                 <div className="flex justify-between text-lg font-semibold mt-4">
-                  <span>Total:</span>
+                  <span>{challengeData.subscriptionTier ? 'Monthly Total:' : 'Total:'}</span>
                   <span className="text-[#60A5FA]">
-                    ${challengeData.price.toFixed(2)}
+                    ${challengeData.price.toFixed(2)}{challengeData.subscriptionTier ? '/mo' : ''}
                   </span>
                 </div>
               </div>

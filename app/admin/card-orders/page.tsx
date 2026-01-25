@@ -27,11 +27,23 @@ interface CardOrder {
   userId?: string;
   email: string;
   customerName?: string;
-  accountSize: string;
-  accountPrice: number;
-  platform: string;
-  planId?: string;
+  // Legacy single account fields
+  accountSize?: string;
+  accountPrice?: number;
+  platform?: string;
   planType?: string;
+  // New subscription fields
+  subscriptionTier?: string;
+  subscriptionPrice?: number;
+  subscriptionPlanId?: string;
+  accountsCount?: number;
+  accounts?: Array<{
+    platform: string;
+    planType: string;
+    accountBalance: string;
+    accountBalanceValue: number;
+  }>;
+  planId?: string;
   receiptId?: string;
   orderId?: string;
   billingInfo?: {
@@ -328,18 +340,36 @@ export default function CardOrdersPage() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <span className="text-white font-semibold">{order.accountSize}</span>
-                        {order.planType && (
-                          <div className="text-gray-400 text-xs">{order.planType}</div>
+                        {order.subscriptionTier ? (
+                          <>
+                            <span className="text-white font-semibold">{order.subscriptionTier} Subscription</span>
+                            <div className="text-gray-400 text-xs">{order.accountsCount} accounts</div>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-white font-semibold">{order.accountSize}</span>
+                            {order.planType && (
+                              <div className="text-gray-400 text-xs">{order.planType}</div>
+                            )}
+                          </>
                         )}
                       </td>
                       <td className="p-4">
-                        <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
-                          {order.platform || 'N/A'}
-                        </span>
+                        {order.subscriptionTier ? (
+                          <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs font-medium">
+                            Subscription
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
+                            {order.platform || 'N/A'}
+                          </span>
+                        )}
                       </td>
                       <td className="p-4">
-                        <span className="text-green-400 font-semibold">${order.accountPrice || 0}</span>
+                        <span className="text-green-400 font-semibold">
+                          ${order.subscriptionPrice || order.accountPrice || 0}
+                          {order.subscriptionTier && <span className="text-xs">/mo</span>}
+                        </span>
                       </td>
                       <td className="p-4 text-gray-300 text-sm">
                         {getOrderDate().toLocaleDateString()}
@@ -421,9 +451,43 @@ export default function CardOrdersPage() {
                                 Order Details
                               </h4>
                               <div className="space-y-2 text-sm">
+                                {order.subscriptionTier && (
+                                  <>
+                                    <div>
+                                      <span className="text-gray-400">Subscription Tier:</span>
+                                      <span className="text-white ml-2">{order.subscriptionTier}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">Active Accounts:</span>
+                                      <span className="text-white ml-2">{order.accountsCount}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">Monthly Price:</span>
+                                      <span className="text-white ml-2">${order.subscriptionPrice}/mo</span>
+                                    </div>
+                                    {order.accounts && order.accounts.length > 0 && (
+                                      <div>
+                                        <div className="text-gray-400 mb-2">Account Details:</div>
+                                        <div className="space-y-2">
+                                          {order.accounts.map((acc, idx) => (
+                                            <div key={idx} className="bg-gray-700/30 rounded p-2">
+                                              <div className="flex justify-between">
+                                                <span className="font-medium">Account {idx + 1}</span>
+                                                <span className="text-gray-400">{acc.accountBalance}</span>
+                                              </div>
+                                              <div className="text-xs text-gray-400 mt-1">
+                                                {acc.planType} • {acc.platform}
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
                                 <div>
                                   <span className="text-gray-400">Plan ID:</span>
-                                  <span className="text-white ml-2 font-mono text-xs">{order.planId || 'N/A'}</span>
+                                  <span className="text-white ml-2 font-mono text-xs">{order.subscriptionPlanId || order.planId || 'N/A'}</span>
                                 </div>
                                 <div>
                                   <span className="text-gray-400">Receipt/Order ID:</span>
@@ -431,7 +495,7 @@ export default function CardOrdersPage() {
                                 </div>
                                 <div>
                                   <span className="text-gray-400">Payment Method:</span>
-                                  <span className="text-white ml-2">Card (Whop)</span>
+                                  <span className="text-white ml-2">Card (Whop){order.subscriptionTier ? ' - Subscription' : ''}</span>
                                 </div>
                                 {order.userId && (
                                   <div>

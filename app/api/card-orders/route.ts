@@ -22,12 +22,11 @@ export async function POST(request: NextRequest) {
     await db.collection('card-orders').doc(orderId).set(documentData);
     
     // Also save to 'purchases' collection for backward compatibility with admin dashboard
-    const purchaseData = {
+    // Check if this is a subscription order or legacy single account order
+    const isSubscriptionOrder = orderData.subscriptionTier && orderData.accounts;
+    
+    const purchaseData: any = {
       email: orderData.email,
-      accountSize: orderData.accountSize,
-      accountPrice: orderData.accountPrice,
-      platform: orderData.platform,
-      planId: orderData.planId,
       receiptId: orderId, // Use the card order ID as receipt
       billingInfo: orderData.billingInfo,
       timestamp: orderData.timestamp || new Date().toISOString(),
@@ -36,6 +35,26 @@ export async function POST(request: NextRequest) {
       source: 'checkout_form',
       cardOrderId: orderId, // Link back to card-orders collection
     };
+
+    // Add subscription-specific or legacy fields
+    if (isSubscriptionOrder) {
+      purchaseData.subscriptionTier = orderData.subscriptionTier;
+      purchaseData.subscriptionPrice = orderData.subscriptionPrice;
+      purchaseData.subscriptionPlanId = orderData.subscriptionPlanId;
+      purchaseData.accountsCount = orderData.accountsCount;
+      purchaseData.accounts = orderData.accounts;
+      purchaseData.planId = orderData.subscriptionPlanId;
+      // For display purposes
+      purchaseData.accountSize = `${orderData.subscriptionTier} Subscription (${orderData.accountsCount} accounts)`;
+      purchaseData.accountPrice = orderData.subscriptionPrice;
+      purchaseData.platform = orderData.accounts[0]?.platform || 'MT4';
+    } else {
+      // Legacy single account structure
+      purchaseData.accountSize = orderData.accountSize;
+      purchaseData.accountPrice = orderData.accountPrice;
+      purchaseData.platform = orderData.platform;
+      purchaseData.planId = orderData.planId;
+    }
     
     await db.collection('purchases').doc(orderId).set(purchaseData);
     

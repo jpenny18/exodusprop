@@ -58,9 +58,21 @@ export interface Purchase {
   id: string;
   userId: string;
   email: string;
-  accountSize: string;
-  accountPrice: number;
-  platform: 'MT4' | 'MT5';
+  // Legacy single account fields
+  accountSize?: string;
+  accountPrice?: number;
+  platform?: 'MT4' | 'MT5';
+  // New subscription fields
+  subscriptionTier?: string;
+  subscriptionPrice?: number;
+  subscriptionPlanId?: string;
+  accountsCount?: number;
+  accounts?: Array<{
+    platform: string;
+    planType: string;
+    accountBalance: string;
+    accountBalanceValue: number;
+  }>;
   planId: string;
   receiptId?: string;
   billingInfo: {
