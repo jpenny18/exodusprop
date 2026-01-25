@@ -54,7 +54,10 @@ export default function AdminPage() {
           // Calculate stats
           const totalRevenue = purchases
             .filter(p => p.status === 'completed')
-            .reduce((sum, p) => sum + p.accountPrice, 0);
+            .reduce((sum, p) => {
+              const price = p.subscriptionPrice || p.accountPrice || 0;
+              return sum + price;
+            }, 0);
           
           const activeAccounts = accounts.filter(acc => acc.status === 'active').length;
           const pendingPayoutsCount = payouts.filter(p => p.status === 'pending').length;
@@ -74,9 +77,11 @@ export default function AdminPage() {
             .map(p => ({
               id: p.id,
               user: p.email,
-              account: p.accountSize.replace('$', '').replace(',000', 'K'),
+              account: p.subscriptionTier 
+                ? `${p.subscriptionTier} (${p.accountsCount || 0} accounts)` 
+                : (p.accountSize || 'N/A').replace('$', '').replace(',000', 'K'),
               platform: p.platform || 'N/A',
-              amount: p.accountPrice,
+              amount: p.subscriptionPrice || p.accountPrice || 0,
               date: p.timestamp,
             }));
 
