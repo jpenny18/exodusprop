@@ -156,7 +156,10 @@ export default function CardOrdersPage() {
 
   const getStats = () => {
     const totalOrders = orders.length;
-    const totalValue = orders.reduce((sum, order) => sum + order.accountPrice, 0);
+    const totalValue = orders.reduce((sum, order) => {
+      const price = order.subscriptionPrice || order.accountPrice || 0;
+      return sum + price;
+    }, 0);
     const completedOrders = orders.filter(order => order.status === 'completed').length;
 
     return {
@@ -347,7 +350,7 @@ export default function CardOrdersPage() {
                           </>
                         ) : (
                           <>
-                            <span className="text-white font-semibold">{order.accountSize}</span>
+                            <span className="text-white font-semibold">{order.accountSize || 'N/A'}</span>
                             {order.planType && (
                               <div className="text-gray-400 text-xs">{order.planType}</div>
                             )}
