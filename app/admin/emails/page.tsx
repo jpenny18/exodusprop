@@ -35,7 +35,7 @@ export default function AdminEmailsPage() {
     toName: '',
     login: '',
     password: '',
-    server: 'Exodus-Live01',
+    server: '',
     platform: 'MT5',
     accountSize: '$25,000',
     challengeType: '1-Step Challenge'
@@ -273,7 +273,7 @@ export default function AdminEmailsPage() {
           toName: '',
           login: '',
           password: '',
-          server: 'Exodus-Live01',
+          server: '',
           platform: 'MT5',
           accountSize: '$25,000',
           challengeType: '1-Step Challenge'
@@ -460,13 +460,18 @@ export default function AdminEmailsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Server *</label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={formData.server}
                     onChange={(e) => setFormData({ ...formData, server: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
-                  />
+                    className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:border-blue-500/50"
+                  >
+                    <option value="">Select Server</option>
+                    <option value="FusionMarkets-Demo">FusionMarkets-Demo</option>
+                    <option value="DominionMarkets-Live">DominionMarkets-Live</option>
+                    <option value="AXI-US03-DEMO">AXI-US03-DEMO</option>
+                    <option value="ADMIRALSGROUP-DEMO">ADMIRALSGROUP-DEMO</option>
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

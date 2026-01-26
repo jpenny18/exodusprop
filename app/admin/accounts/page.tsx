@@ -3280,8 +3280,8 @@ export default function AdminAccountsPage() {
                           className="w-full bg-[#151515] border border-[#2F2F2F] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-exodus-light-blue/50"
                         >
                           <option value="">Select Server</option>
-                          <option value="Exodus-Live01">Exodus-Live01</option>
-                          <option value="Exodus-Demo01">Exodus-Demo01</option>
+                          <option value="FusionMarkets-Demo">FusionMarkets-Demo</option>
+                          <option value="DominionMarkets-Live">DominionMarkets-Live</option>
                           <option value="AXI-US03-DEMO">AXI-US03-DEMO</option>
                           <option value="ADMIRALSGROUP-DEMO">ADMIRALSGROUP-DEMO</option>
                         </select>
