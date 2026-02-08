@@ -62,13 +62,15 @@ interface CardOrder {
   source?: string; // 'checkout_form', 'whop_webhook', etc.
 }
 
+type TabType = 'all' | 'pending' | 'completed' | 'entry' | 'builder' | 'scale';
+
 export default function CardOrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<CardOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'completed' | 'pending'>('ALL');
+  const [activeTab, setActiveTab] = useState<TabType>('all');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const adminNavItems = [
@@ -161,11 +163,19 @@ export default function CardOrdersPage() {
       return sum + price;
     }, 0);
     const completedOrders = orders.filter(order => order.status === 'completed').length;
+    const pendingOrders = orders.filter(order => order.status === 'pending').length;
+    const entryOrders = orders.filter(order => order.subscriptionTier?.toLowerCase() === 'entry').length;
+    const builderOrders = orders.filter(order => order.subscriptionTier?.toLowerCase() === 'builder').length;
+    const scaleOrders = orders.filter(order => order.subscriptionTier?.toLowerCase() === 'scale').length;
 
     return {
       totalOrders,
       totalValue,
       completedOrders,
+      pendingOrders,
+      entryOrders,
+      builderOrders,
+      scaleOrders,
     };
   };
 
@@ -177,9 +187,30 @@ export default function CardOrdersPage() {
       (order.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       customerName.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
+    // Filter by active tab
+    let matchesTab = true;
+    switch (activeTab) {
+      case 'pending':
+        matchesTab = order.status === 'pending';
+        break;
+      case 'completed':
+        matchesTab = order.status === 'completed';
+        break;
+      case 'entry':
+        matchesTab = order.subscriptionTier?.toLowerCase() === 'entry';
+        break;
+      case 'builder':
+        matchesTab = order.subscriptionTier?.toLowerCase() === 'builder';
+        break;
+      case 'scale':
+        matchesTab = order.subscriptionTier?.toLowerCase() === 'scale';
+        break;
+      case 'all':
+      default:
+        matchesTab = true;
+    }
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesTab;
   });
 
   if (loading) {
@@ -207,8 +238,8 @@ export default function CardOrdersPage() {
           </button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Quick Stats Overview */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
             <div className="text-gray-400 text-sm">Total Orders</div>
             <div className="text-2xl font-bold text-white">{getStats().totalOrders}</div>
@@ -223,12 +254,124 @@ export default function CardOrdersPage() {
             <div className="text-gray-400 text-sm">Completed</div>
             <div className="text-2xl font-bold text-green-400">{getStats().completedOrders}</div>
           </div>
+
+          <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
+            <div className="text-gray-400 text-sm">Pending</div>
+            <div className="text-2xl font-bold text-yellow-400">{getStats().pendingOrders}</div>
+          </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
+        {/* Tabbed Navigation */}
+        <div className="bg-gray-800/50 rounded-lg border border-gray-700/50 overflow-hidden">
+          <div className="flex flex-wrap border-b border-gray-700/50">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-6 py-3 font-medium transition-colors relative ${
+                activeTab === 'all'
+                  ? 'text-white bg-gray-700/30'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/20'
+              }`}
+            >
+              All Orders
+              <span className="ml-2 px-2 py-0.5 bg-gray-700 rounded text-xs">
+                {getStats().totalOrders}
+              </span>
+              {activeTab === 'all' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
+              )}
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`px-6 py-3 font-medium transition-colors relative ${
+                activeTab === 'pending'
+                  ? 'text-white bg-gray-700/30'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/20'
+              }`}
+            >
+              Pending
+              <span className="ml-2 px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-xs">
+                {getStats().pendingOrders}
+              </span>
+              {activeTab === 'pending' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-500"></div>
+              )}
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('completed')}
+              className={`px-6 py-3 font-medium transition-colors relative ${
+                activeTab === 'completed'
+                  ? 'text-white bg-gray-700/30'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/20'
+              }`}
+            >
+              Completed
+              <span className="ml-2 px-2 py-0.5 bg-green-500/20 text-green-400 rounded text-xs">
+                {getStats().completedOrders}
+              </span>
+              {activeTab === 'completed' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500"></div>
+              )}
+            </button>
+
+            <div className="w-px bg-gray-700/50 my-2"></div>
+            
+            <button
+              onClick={() => setActiveTab('entry')}
+              className={`px-6 py-3 font-medium transition-colors relative ${
+                activeTab === 'entry'
+                  ? 'text-white bg-gray-700/30'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/20'
+              }`}
+            >
+              Entry
+              <span className="ml-2 px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs">
+                {getStats().entryOrders}
+              </span>
+              {activeTab === 'entry' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
+              )}
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('builder')}
+              className={`px-6 py-3 font-medium transition-colors relative ${
+                activeTab === 'builder'
+                  ? 'text-white bg-gray-700/30'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/20'
+              }`}
+            >
+              Builder
+              <span className="ml-2 px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">
+                {getStats().builderOrders}
+              </span>
+              {activeTab === 'builder' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500"></div>
+              )}
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('scale')}
+              className={`px-6 py-3 font-medium transition-colors relative ${
+                activeTab === 'scale'
+                  ? 'text-white bg-gray-700/30'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/20'
+              }`}
+            >
+              Scale
+              <span className="ml-2 px-2 py-0.5 bg-indigo-500/20 text-indigo-400 rounded text-xs">
+                {getStats().scaleOrders}
+              </span>
+              {activeTab === 'scale' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500"></div>
+              )}
+            </button>
+          </div>
+
+          {/* Search Bar */}
+          <div className="p-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
@@ -238,66 +381,64 @@ export default function CardOrdersPage() {
                 className="w-full pl-10 pr-4 py-2 bg-gray-900/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
               />
             </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => setStatusFilter('ALL')}
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                  statusFilter === 'ALL'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-700/50 text-gray-400 hover:bg-gray-700'
-                }`}
-              >
-                <Filter size={16} />
-                All
-              </button>
-              <button
-                onClick={() => setStatusFilter('completed')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  statusFilter === 'completed'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-700/50 text-gray-400 hover:bg-gray-700'
-                }`}
-              >
-                Completed
-              </button>
-              <button
-                onClick={() => setStatusFilter('pending')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  statusFilter === 'pending'
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-gray-700/50 text-gray-400 hover:bg-gray-700'
-                }`}
-              >
-                Pending
-              </button>
-            </div>
           </div>
         </div>
 
         {/* Orders Table */}
         <div className="bg-gray-800/50 rounded-lg border border-gray-700/50 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-900/50">
-              <tr className="text-left text-gray-400 text-sm">
-                <th className="p-4 font-medium">Customer</th>
-                <th className="p-4 font-medium">Account Size</th>
-                <th className="p-4 font-medium">Platform</th>
-                <th className="p-4 font-medium">Amount</th>
-                <th className="p-4 font-medium">Date</th>
-                <th className="p-4 font-medium">Status</th>
-                <th className="p-4 font-medium">Details</th>
-                <th className="p-4 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="p-8 text-center text-gray-400">
-                    No card orders found
-                  </td>
+          {/* Tab Context Info */}
+          {activeTab !== 'all' && filteredOrders.length > 0 && (
+            <div className="px-4 py-3 bg-gray-900/30 border-b border-gray-700/50 flex items-center gap-2">
+              <Filter size={16} className="text-blue-400" />
+              <span className="text-gray-300 text-sm">
+                Showing{' '}
+                <span className="font-semibold text-white">{filteredOrders.length}</span>
+                {' '}
+                {activeTab === 'pending' && 'pending orders'}
+                {activeTab === 'completed' && 'completed orders'}
+                {activeTab === 'entry' && 'Entry tier subscriptions'}
+                {activeTab === 'builder' && 'Builder tier subscriptions'}
+                {activeTab === 'scale' && 'Scale tier subscriptions'}
+              </span>
+            </div>
+          )}
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-900/50">
+                <tr className="text-left text-gray-400 text-sm">
+                  <th className="p-4 font-medium">Customer</th>
+                  <th className="p-4 font-medium">Account Size</th>
+                  <th className="p-4 font-medium">Platform</th>
+                  <th className="p-4 font-medium">Amount</th>
+                  <th className="p-4 font-medium">Date</th>
+                  <th className="p-4 font-medium">Status</th>
+                  <th className="p-4 font-medium">Details</th>
+                  <th className="p-4 font-medium">Actions</th>
                 </tr>
-              ) : (
+              </thead>
+              <tbody>
+                {filteredOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-8 text-center">
+                      <div className="text-gray-400">
+                        {searchTerm ? (
+                          <>No orders found matching "{searchTerm}"</>
+                        ) : (
+                          <>
+                            No{' '}
+                            {activeTab === 'pending' && 'pending '}
+                            {activeTab === 'completed' && 'completed '}
+                            {activeTab === 'entry' && 'Entry tier '}
+                            {activeTab === 'builder' && 'Builder tier '}
+                            {activeTab === 'scale' && 'Scale tier '}
+                            orders found
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
                 filteredOrders.map((order) => {
                   // Helper to get customer name from various sources
                   const getCustomerName = () => {
@@ -532,8 +673,9 @@ export default function CardOrdersPage() {
                   </>
                 );})
               )}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </DashboardLayout>

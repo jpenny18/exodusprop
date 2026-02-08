@@ -131,7 +131,7 @@ export default function PurchasePage() {
     return allFieldsFilled && allCheckboxesChecked && allAccountsValid;
   };
 
-  // Handle "PAY WITH CARD" button - saves order to Firebase FIRST, then shows Whop
+  // Handle "PAY WITH CARD" button - saves order to Firebase FIRST, then redirects to Whop checkout
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid() || isSubmitting) return;
@@ -154,7 +154,7 @@ export default function PurchasePage() {
         };
       });
       
-      // Save pending order to Firebase BEFORE showing payment
+      // Save pending order to Firebase BEFORE redirecting to payment
       const orderData = {
         orderId: orderId,
         email: formData.email,
@@ -192,7 +192,6 @@ export default function PurchasePage() {
       
       const savedOrder = await saveResponse.json();
       console.log('[Purchase] Pending order saved:', savedOrder.orderId);
-      setPendingOrderId(savedOrder.orderId);
       
       // Send admin notification email about the pending card order
       try {
@@ -210,12 +209,23 @@ export default function PurchasePage() {
         // Don't block the flow if email fails
       }
       
-      // Now show Whop payment embed
-      setShowPayment(true);
+      // Track checkout initiation with Meta Pixel
+      const trackInitiateCheckout = (await import("@/lib/facebookPixel")).trackInitiateCheckout;
+      trackInitiateCheckout();
+      
+      // Redirect to the appropriate Whop checkout link based on subscription tier
+      const checkoutUrls: Record<SubscriptionTier, string> = {
+        entry: 'https://whop.com/checkout/plan_M7oLmQ2ac5SQo',
+        builder: 'https://whop.com/checkout/plan_u7VCzLERALfpG',
+        scale: 'https://whop.com/checkout/plan_Egri3DcdLamdg'
+      };
+      
+      const checkoutUrl = checkoutUrls[selectedSubscription];
+      console.log('[Purchase] Redirecting to checkout:', checkoutUrl);
+      window.location.href = checkoutUrl;
     } catch (error) {
       console.error('[Purchase] Error saving pending order:', error);
       alert('There was an error processing your request. Please try again.');
-    } finally {
       setIsSubmitting(false);
     }
   };
