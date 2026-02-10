@@ -53,12 +53,13 @@ export async function POST(request: NextRequest) {
       purchaseData.accountSize = orderData.accountSize;
       purchaseData.accountPrice = orderData.accountPrice;
       purchaseData.platform = orderData.platform;
+      purchaseData.planType = orderData.planType; // Add plan type (1-Step or Elite)
       purchaseData.planId = orderData.planId;
     }
     
     await db.collection('purchases').doc(orderId).set(purchaseData);
     
-    console.log('[Card Orders API] Created order:', orderId);
+    console.log('[Card Orders API] Created order:', orderId, 'Plan Type:', purchaseData.planType || orderData.planType || 'N/A');
     
     return NextResponse.json({ 
       success: true, 

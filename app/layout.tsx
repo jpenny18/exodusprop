@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ backgroundColor: '#000000' }}>
       <head>
         {/* Meta Pixel Base Code - Loads on every page */}
         {FB_PIXEL_ID && (
@@ -51,7 +51,7 @@ export default function RootLayout({
           </>
         )}
       </head>
-      <body>
+      <body style={{ backgroundColor: '#000000', margin: 0, padding: 0 }}>
         {children}
       </body>
     </html>

@@ -57,21 +57,23 @@ export default function Home() {
     onestep: {
       name: "Exodus 1-Step",
       accounts: [10000, 25000, 50000, 100000, 200000] as const,
-      prices: { 10000: 109, 25000: 247, 50000: 399, 100000: 699, 200000: 1499 } as Record<number, number>,
+      prices: { 10000: 81, 25000: 128, 50000: 174, 100000: 336, 200000: 647 } as Record<number, number>,
+      oldPrices: { 10000: 109, 25000: 247, 50000: 399, 100000: 699, 200000: 1499 } as Record<number, number>,
       profitTarget: "8%",
       maxDailyLoss: "4%",
       maxDrawdown: "6% (Static)",
-      leverage: "Up to 1:100",
+      leverage: "1:100",
       minTradingDays: "No minimum"
     },
     elite: {
       name: "Exodus Elite",
       accounts: [10000, 25000, 50000, 100000, 200000] as const,
       prices: { 10000: 209, 25000: 599, 50000: 799, 100000: 1299, 200000: 2599 } as Record<number, number>,
+      oldPrices: { 10000: 209, 25000: 599, 50000: 799, 100000: 1299, 200000: 2599 } as Record<number, number>,
       profitTarget: "10%",
       maxDailyLoss: "10% (Trailing EOD)",
       maxDrawdown: "None",
-      leverage: "Up to 1:100",
+      leverage: "1:100",
       minTradingDays: "No minimum"
     }
   };
@@ -127,6 +129,15 @@ export default function Home() {
       ), 
       label: 'Leverage', 
       getValue: () => currentConfig.leverage 
+    },
+    { 
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+        </svg>
+      ), 
+      label: 'Profit Split', 
+      getValue: () => '90%' 
     }
   ];
 
@@ -466,7 +477,7 @@ export default function Home() {
       </section>
 
         {/* Partnership Banner */}
-        <section className="py-4 md:py-6 px-2 md:px-4 bg-exodus-dark">
+        <section className="py-0 md:py-0 px-0 md:px-0 bg-exodus-dark">
           <div className="max-w-6xl mx-auto">
             {/* 3 Divs in Row Layout (horizontal on all widths) */}
             <div
@@ -552,7 +563,7 @@ export default function Home() {
       </section>
 
       {/* Features Section - Bento Box */}
-      <section id="features" className="py-20 px-4 bg-exodus-dark">
+      <section id="features" className="py-20 px-4 bg-exodus-dark hidden">
         <div className="max-w-7xl mx-auto">
           {/* Bento Grid Layout */}
           <div className="space-y-4 px-4 md:px-0 mb-12">
@@ -681,9 +692,66 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <section className="py-1 px-4 bg-exodus-dark">
+        <div className="max-w-7xl mx-auto">
+          <div className="mt-16 md:mt-20">
+            <div className="max-w-6xl mx-auto">
+              {/* Mobile Layout */}
+              <div className="md:hidden flex flex-col items-center gap-2">
+                {/* Platform Image and Title */}
+                <div className="w-full px-4 mb-1 pb-0 flex flex-col items-center">
+                  <Image
+                    src="/platforms.png"
+                    alt="Trading Platforms - MT4, MT5, cTrader, DXtrade"
+                    width={600}
+                    height={600}
+                    className="w-full h-auto object-contain mb-0 pb-0"
+                  />
+                  <h3
+                    className="text-2xl font-bold text-white mb-1 mt-0"
+                    style={{ transform: "translateY(-50px)" }}
+                  >
+                    We Support Major Platforms
+                  </h3>
+                </div>
 
+                {/* Text Content */}
+                <div className="text-center px-4 mt-0">
+                  <p className="text-gray-300 text-sm leading-relaxed max-w-md mx-auto hidden">
+                    At Exodus, we want to give you options. That's why we offer the flexibility to tailor your experience and choose between MT4 and MT5. Pick the professional trading platform that suits you best.
+                  </p>
+                </div>
+              </div>
+
+              {/* Desktop Layout */}
+              <div className="hidden md:grid md:grid-cols-2 gap-16 items-center">
+                {/* Left - Text Content */}
+                <div>
+                  <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+                    We Support Major Platforms
+                  </h3>
+                  <p className="text-gray-300 text-base leading-relaxed mb-6">
+                    At Exodus, we want to give you options. That's why we offer the flexibility to tailor your experience and choose between MT4 and MT5. Pick the professional trading platform that suits you best.
+                  </p>
+                </div>
+
+                {/* Right - Platform Image */}
+                <div className="w-full">
+                  <Image
+                    src="/platforms.png"
+                    alt="Trading Platforms - MT4, MT5, cTrader, DXtrade"
+                    width={800}
+                    height={800}
+                    className="w-full h-auto object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       {/* How It Works */}
-      <section className="py-20 px-4 bg-exodus-dark">
+      <section className="py-10 px-4 bg-exodus-dark">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-bold text-center text-white mb-4">
             How It Works
@@ -1089,7 +1157,7 @@ export default function Home() {
       </section>
 
       {/* Subscription Plans Section */}
-      <section className="py-20 px-4 bg-exodus-dark relative">
+      <section className="hidden py-20 px-4 bg-exodus-dark relative">
         <div className="max-w-7xl mx-auto">
           {/* Step 1: Choose Your Plan */}
           <div className="relative">
@@ -1329,10 +1397,10 @@ export default function Home() {
       {/* Pricing Section */}
       <section id="pricing" className="py-20 px-4 bg-exodus-dark">
         <div className="max-w-7xl mx-auto">
-          {/* Step 2: Choose Your Accounts */}
+          {/* Step 1: Choose Your Accounts */}
           <div className="flex items-center justify-center gap-4 mb-8">
             <div className="bg-exodus-light-blue rounded-full w-12 h-12 flex items-center justify-center">
-              <span className="text-white text-2xl font-bold">2</span>
+              <span className="text-white text-2xl font-bold">1</span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-white">Choose Your Accounts</h2>
           </div>
@@ -1371,7 +1439,7 @@ export default function Home() {
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden lg:block max-w-[1400px] mx-auto px-4 overflow-x-auto pt-4">
+          <div className="hidden lg:block max-w-[1400px] mx-auto px-4 overflow-x-auto scrollbar-hide pt-4">
             <div className="flex gap-0 min-w-fit">
               {/* Left Column - Feature Labels */}
               <div className="flex-shrink-0 w-40 pt-[80px]">
@@ -1394,7 +1462,7 @@ export default function Home() {
                   return (
                     <div 
                       key={account} 
-                      className={`flex-shrink-0 w-[140px] relative ${isBestValue ? 'z-10' : ''}`}
+                      className={`flex-shrink-0 w-[175px] relative ${isBestValue ? 'z-10' : ''}`}
                     >
                       {/* Best Value Badge */}
                       {isBestValue && (
@@ -1456,7 +1524,8 @@ export default function Home() {
                             borderColor: 'color-mix(in oklab, white 8%, transparent)'
                           }}
                         >
-                          <div className="flex items-center justify-center gap-1.5 mb-3">
+                          <div className="flex flex-col items-center justify-center gap-1 mb-3">
+                            <span className="text-gray-500 text-sm line-through">${currentConfig.oldPrices[account]}</span>
                             <span className="text-exodus-light-blue text-lg font-bold">${currentConfig.prices[account]}</span>
                           </div>
                           
@@ -1549,7 +1618,8 @@ export default function Home() {
                     borderColor: 'color-mix(in oklab, white 8%, transparent)'
                   }}
                 >
-                  <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="flex flex-col items-center justify-center gap-1 mb-4">
+                    <span className="text-gray-500 text-lg line-through">${currentConfig.oldPrices[selectedMobileAccount]}</span>
                     <span className="text-exodus-light-blue text-2xl font-bold">${currentConfig.prices[selectedMobileAccount]}</span>
                   </div>
                   
@@ -1608,57 +1678,184 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Platform Support Section */}
-          <div className="mt-16 md:mt-20">
-            <div className="max-w-6xl mx-auto">
-              {/* Mobile Layout */}
-              <div className="md:hidden flex flex-col items-center gap-8">
-                {/* Platform Image */}
-                <div className="w-full px-4">
-                  <Image
-                    src="/platforms.png"
-                    alt="Trading Platforms - MT4, MT5, cTrader, DXtrade"
-                    width={600}
-                    height={600}
-                    className="w-full h-auto object-contain"
-                  />
-                </div>
-
-                {/* Text Content */}
-                <div className="text-center px-4">
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    We Support Major Platforms
-                  </h3>
-                  <p className="text-gray-300 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-                    At Exodus, we want to give you options. That's why we offer the flexibility to tailor your experience and choose between MT4 and MT5. Pick the professional trading platform that suits you best.
-                  </p>
-                </div>
-              </div>
-
-              {/* Desktop Layout */}
-              <div className="hidden md:grid md:grid-cols-2 gap-16 items-center">
-                {/* Left - Text Content */}
-                <div>
-                  <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-                    We Support Major Platforms
-                  </h3>
-                  <p className="text-gray-300 text-base leading-relaxed mb-6">
-                    At Exodus, we want to give you options. That's why we offer the flexibility to tailor your experience and choose between MT4 and MT5. Pick the professional trading platform that suits you best.
-                  </p>
-                </div>
-
-                {/* Right - Platform Image */}
-                <div className="w-full">
-                  <Image
-                    src="/platforms.png"
-                    alt="Trading Platforms - MT4, MT5, cTrader, DXtrade"
-                    width={800}
-                    height={800}
-                    className="w-full h-auto object-contain"
-                  />
+      {/* Trustpilot Reviews Section */}
+      <section className="py-16 px-4 bg-exodus-dark border-t border-white/5">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              Built on Trust. Backed by Performance.
+            </h2>
+            
+            {/* Trustpilot Rating Banner */}
+            <div className="flex items-center justify-center gap-4 mb-4 md:mb-8 mt-2 md:mt-0">
+              <div className="flex flex-col items-start">
+                <div className="text-white text-base font-semibold">Great</div>
+                <div className="flex gap-0.5">
+                  {[...Array(4)].map((_, i) => (
+                    <svg key={i} className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                  <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Reviews Row */}
+          <div className="flex gap-4 overflow-x-auto pb-4 px-4 md:px-0 scrollbar-hide">
+            {/* Review 1 - Josh */}
+            <div 
+              className="flex-shrink-0 w-72 rounded-lg p-4 border transition-all duration-300 hover:border-green-500/50"
+              style={{
+                backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                borderColor: 'color-mix(in oklab, white 8%, transparent)'
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500 font-bold text-xs">
+                    JO
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold text-sm">Josh</div>
+                  </div>
+                </div>
+                <div className="text-gray-400 text-xs">5 days ago</div>
+              </div>
+              
+              <div className="flex gap-0.5 mb-2">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              
+              <h3 className="text-white font-semibold text-sm mb-1">
+                The best and fastest prop I've ever...
+              </h3>
+              
+              <p className="text-gray-300 text-xs leading-relaxed line-clamp-3">
+                I'm on my 2nd payout now and everything was extremely fast. I had it processed and hitting my account in 30 mins. Exodus is by far the fastest Propfirm I've ever experienced and I've traded with everyone.
+              </p>
+            </div>
+
+            {/* Review 2 - Tusun Bommer */}
+            <div 
+              className="flex-shrink-0 w-72 rounded-lg p-4 border transition-all duration-300 hover:border-green-500/50"
+              style={{
+                backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                borderColor: 'color-mix(in oklab, white 8%, transparent)'
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 font-bold text-xs">
+                    C
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold text-sm">Tusun Bommer</div>
+                  </div>
+                </div>
+                <div className="text-gray-400 text-xs">6 days ago</div>
+              </div>
+              
+              <div className="flex gap-0.5 mb-2">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              
+              <h3 className="text-white font-semibold text-sm mb-1">
+                Fastest account processing & payouts...
+              </h3>
+              
+              <p className="text-gray-300 text-xs leading-relaxed line-clamp-3">
+                Everything was processed quickly and the on demand option really worked. They definitely have my trust and my business from here on out. Exodus to the top!
+              </p>
+            </div>
+
+            {/* Review 3 - Andre W */}
+            <div 
+              className="flex-shrink-0 w-72 rounded-lg p-4 border transition-all duration-300 hover:border-green-500/50"
+              style={{
+                backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                borderColor: 'color-mix(in oklab, white 8%, transparent)'
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold text-xs">
+                    C
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold text-sm">Andre W</div>
+                  </div>
+                </div>
+                <div className="text-gray-400 text-xs">Dec 26</div>
+              </div>
+              
+              <div className="flex gap-0.5 mb-2">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              
+              <h3 className="text-white font-semibold text-sm mb-1">
+                Exodus is fast and will become...
+              </h3>
+              
+              <p className="text-gray-300 text-xs leading-relaxed line-clamp-3">
+                Exodus is fast and will become mainstream. Most propfirms take up to an hour or more just to get you your login credentials. Exodus sent me my login credentials within 5 mins.
+              </p>
+            </div>
+
+            {/* Review 4 - Colton Q */}
+            <div 
+              className="flex-shrink-0 w-72 rounded-lg p-4 border transition-all duration-300 hover:border-green-500/50"
+              style={{
+                backgroundColor: 'color-mix(in oklab, white 4%, transparent)',
+                borderColor: 'color-mix(in oklab, white 8%, transparent)'
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-500/20 flex items-center justify-center text-gray-400 font-bold text-xs">
+                    CQ
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold text-sm">Colton Q.</div>
+                  </div>
+                </div>
+                <div className="text-gray-400 text-xs">Feb 1</div>
+              </div>
+              
+              <div className="flex gap-0.5 mb-2">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              
+              <h3 className="text-white font-semibold text-sm mb-1">
+                faster than a live cfd broker
+              </h3>
+              
+              <p className="text-gray-300 text-xs leading-relaxed line-clamp-3">
+                Everything was extremely fast. Whenever I asked a question they responded within 30mins and everything was processed incredibly quick too.
+              </p>
             </div>
           </div>
         </div>
@@ -1667,12 +1864,7 @@ export default function Home() {
       {/* FAQ Section */}
       <section id="faq" className="py-20 px-4 bg-exodus-dark">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-bold text-center text-white mb-4">
-            Rules to Support Traders
-          </h2>
-          <p className="text-center text-gray-300 mb-12 text-lg">
-            Our rules are clear, consistent, and focus on risk management.
-          </p>
+     
 
           <h3 className="text-3xl font-bold text-center text-exodus-light-blue mb-8">
             FREQUENTLY ASKED QUESTIONS

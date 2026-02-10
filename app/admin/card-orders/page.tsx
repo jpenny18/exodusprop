@@ -62,7 +62,7 @@ interface CardOrder {
   source?: string; // 'checkout_form', 'whop_webhook', etc.
 }
 
-type TabType = 'all' | 'pending' | 'completed' | 'entry' | 'builder' | 'scale';
+type TabType = 'all' | 'pending' | 'completed' | '1step' | 'elite';
 
 export default function CardOrdersPage() {
   const router = useRouter();
@@ -113,7 +113,12 @@ export default function CardOrdersPage() {
         const data = doc.data();
         // Only include card payments
         if (data.paymentMethod === 'card' || !data.paymentMethod) {
-          ordersData.push({ id: doc.id, ...data } as CardOrder);
+          const order = { id: doc.id, ...data } as CardOrder;
+          ordersData.push(order);
+          // Log plan type for debugging
+          if (order.planType) {
+            console.log(`[Card Orders] Order ${doc.id}: ${order.planType} - ${order.accountSize}`);
+          }
         }
       });
       // Sort client-side to handle missing timestamp fields
@@ -164,18 +169,25 @@ export default function CardOrdersPage() {
     }, 0);
     const completedOrders = orders.filter(order => order.status === 'completed').length;
     const pendingOrders = orders.filter(order => order.status === 'pending').length;
-    const entryOrders = orders.filter(order => order.subscriptionTier?.toLowerCase() === 'entry').length;
-    const builderOrders = orders.filter(order => order.subscriptionTier?.toLowerCase() === 'builder').length;
-    const scaleOrders = orders.filter(order => order.subscriptionTier?.toLowerCase() === 'scale').length;
+    
+    // Count by plan type (1-Step vs Elite)
+    const oneStepOrders = orders.filter(order => {
+      const planType = order.planType?.toLowerCase();
+      return planType === '1-step' || planType === 'onestep';
+    }).length;
+    
+    const eliteOrders = orders.filter(order => {
+      const planType = order.planType?.toLowerCase();
+      return planType === 'elite';
+    }).length;
 
     return {
       totalOrders,
       totalValue,
       completedOrders,
       pendingOrders,
-      entryOrders,
-      builderOrders,
-      scaleOrders,
+      oneStepOrders,
+      eliteOrders,
     };
   };
 
@@ -196,14 +208,13 @@ export default function CardOrdersPage() {
       case 'completed':
         matchesTab = order.status === 'completed';
         break;
-      case 'entry':
-        matchesTab = order.subscriptionTier?.toLowerCase() === 'entry';
+      case '1step':
+        const planType1Step = order.planType?.toLowerCase();
+        matchesTab = planType1Step === '1-step' || planType1Step === 'onestep';
         break;
-      case 'builder':
-        matchesTab = order.subscriptionTier?.toLowerCase() === 'builder';
-        break;
-      case 'scale':
-        matchesTab = order.subscriptionTier?.toLowerCase() === 'scale';
+      case 'elite':
+        const planTypeElite = order.planType?.toLowerCase();
+        matchesTab = planTypeElite === 'elite';
         break;
       case 'all':
       default:
@@ -318,53 +329,36 @@ export default function CardOrdersPage() {
             <div className="w-px bg-gray-700/50 my-2"></div>
             
             <button
-              onClick={() => setActiveTab('entry')}
+              onClick={() => setActiveTab('1step')}
               className={`px-6 py-3 font-medium transition-colors relative ${
-                activeTab === 'entry'
+                activeTab === '1step'
                   ? 'text-white bg-gray-700/30'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700/20'
               }`}
             >
-              Entry
+              1-Step
               <span className="ml-2 px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs">
-                {getStats().entryOrders}
+                {getStats().oneStepOrders}
               </span>
-              {activeTab === 'entry' && (
+              {activeTab === '1step' && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
               )}
             </button>
             
             <button
-              onClick={() => setActiveTab('builder')}
+              onClick={() => setActiveTab('elite')}
               className={`px-6 py-3 font-medium transition-colors relative ${
-                activeTab === 'builder'
+                activeTab === 'elite'
                   ? 'text-white bg-gray-700/30'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700/20'
               }`}
             >
-              Builder
+              Elite
               <span className="ml-2 px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">
-                {getStats().builderOrders}
+                {getStats().eliteOrders}
               </span>
-              {activeTab === 'builder' && (
+              {activeTab === 'elite' && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500"></div>
-              )}
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('scale')}
-              className={`px-6 py-3 font-medium transition-colors relative ${
-                activeTab === 'scale'
-                  ? 'text-white bg-gray-700/30'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/20'
-              }`}
-            >
-              Scale
-              <span className="ml-2 px-2 py-0.5 bg-indigo-500/20 text-indigo-400 rounded text-xs">
-                {getStats().scaleOrders}
-              </span>
-              {activeTab === 'scale' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500"></div>
               )}
             </button>
           </div>
@@ -396,9 +390,8 @@ export default function CardOrdersPage() {
                 {' '}
                 {activeTab === 'pending' && 'pending orders'}
                 {activeTab === 'completed' && 'completed orders'}
-                {activeTab === 'entry' && 'Entry tier subscriptions'}
-                {activeTab === 'builder' && 'Builder tier subscriptions'}
-                {activeTab === 'scale' && 'Scale tier subscriptions'}
+                {activeTab === '1step' && '1-Step challenge orders'}
+                {activeTab === 'elite' && 'Elite challenge orders'}
               </span>
             </div>
           )}
@@ -409,7 +402,7 @@ export default function CardOrdersPage() {
                 <tr className="text-left text-gray-400 text-sm">
                   <th className="p-4 font-medium">Customer</th>
                   <th className="p-4 font-medium">Account Size</th>
-                  <th className="p-4 font-medium">Platform</th>
+                  <th className="p-4 font-medium">Type & Platform</th>
                   <th className="p-4 font-medium">Amount</th>
                   <th className="p-4 font-medium">Date</th>
                   <th className="p-4 font-medium">Status</th>
@@ -429,9 +422,8 @@ export default function CardOrdersPage() {
                             No{' '}
                             {activeTab === 'pending' && 'pending '}
                             {activeTab === 'completed' && 'completed '}
-                            {activeTab === 'entry' && 'Entry tier '}
-                            {activeTab === 'builder' && 'Builder tier '}
-                            {activeTab === 'scale' && 'Scale tier '}
+                            {activeTab === '1step' && '1-Step '}
+                            {activeTab === 'elite' && 'Elite '}
                             orders found
                           </>
                         )}
@@ -490,24 +482,48 @@ export default function CardOrdersPage() {
                             <div className="text-gray-400 text-xs">{order.accountsCount} accounts</div>
                           </>
                         ) : (
-                          <>
+                          <div>
                             <span className="text-white font-semibold">{order.accountSize || 'N/A'}</span>
                             {order.planType && (
-                              <div className="text-gray-400 text-xs">{order.planType}</div>
+                              <div className="mt-1">
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                  order.planType.toLowerCase() === '1-step' || order.planType.toLowerCase() === 'onestep'
+                                    ? 'bg-blue-500/20 text-blue-400'
+                                    : order.planType.toLowerCase() === 'elite'
+                                    ? 'bg-purple-500/20 text-purple-400'
+                                    : 'bg-gray-500/20 text-gray-400'
+                                }`}>
+                                  {order.planType}
+                                </span>
+                              </div>
                             )}
-                          </>
+                          </div>
                         )}
                       </td>
                       <td className="p-4">
-                        {order.subscriptionTier ? (
-                          <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs font-medium">
-                            Subscription
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
-                            {order.platform || 'N/A'}
-                          </span>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          {order.planType && (
+                            <span className={`px-2 py-1 rounded text-xs font-medium inline-block w-fit ${
+                              order.planType.toLowerCase() === '1-step' || order.planType.toLowerCase() === 'onestep'
+                                ? 'bg-blue-500/20 text-blue-400'
+                                : order.planType.toLowerCase() === 'elite'
+                                ? 'bg-purple-500/20 text-purple-400'
+                                : 'bg-gray-500/20 text-gray-400'
+                            }`}>
+                              {order.planType}
+                            </span>
+                          )}
+                          {order.platform && (
+                            <span className="px-2 py-1 bg-gray-500/20 text-gray-400 rounded text-xs font-medium inline-block w-fit">
+                              {order.platform}
+                            </span>
+                          )}
+                          {order.subscriptionTier && (
+                            <span className="px-2 py-1 bg-orange-500/20 text-orange-400 rounded text-xs font-medium inline-block w-fit">
+                              Subscription
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4">
                         <span className="text-green-400 font-semibold">
@@ -595,7 +611,7 @@ export default function CardOrdersPage() {
                                 Order Details
                               </h4>
                               <div className="space-y-2 text-sm">
-                                {order.subscriptionTier && (
+                                {order.subscriptionTier ? (
                                   <>
                                     <div>
                                       <span className="text-gray-400">Subscription Tier:</span>
@@ -627,6 +643,33 @@ export default function CardOrdersPage() {
                                         </div>
                                       </div>
                                     )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <div>
+                                      <span className="text-gray-400">Account Size:</span>
+                                      <span className="text-white ml-2">{order.accountSize || 'N/A'}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">Plan Type:</span>
+                                      <span className={`ml-2 px-2 py-0.5 rounded text-xs font-medium ${
+                                        order.planType?.toLowerCase() === '1-step' || order.planType?.toLowerCase() === 'onestep'
+                                          ? 'bg-blue-500/20 text-blue-400'
+                                          : order.planType?.toLowerCase() === 'elite'
+                                          ? 'bg-purple-500/20 text-purple-400'
+                                          : 'bg-gray-500/20 text-gray-400'
+                                      }`}>
+                                        {order.planType || 'N/A'}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">Platform:</span>
+                                      <span className="text-white ml-2">{order.platform || 'N/A'}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">Price:</span>
+                                      <span className="text-white ml-2">${order.accountPrice || 0}</span>
+                                    </div>
                                   </>
                                 )}
                                 <div>
