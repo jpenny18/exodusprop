@@ -41,10 +41,10 @@ export default function HowWePayTraders() {
         
         <div className="max-w-4xl mx-auto relative z-10 text-center">
           <h1 className="text-3xl md:text-6xl font-bold text-white mb-4 md:mb-6 leading-tight">
-            How We Pay Traders
+            How Performance Rewards Are Processed
           </h1>
           <p className="text-lg md:text-2xl text-gray-200">
-            Transparent, rule-based performance payouts
+            Transparent, rule-based simulated performance rewards
           </p>
         </div>
       </section>
@@ -56,10 +56,10 @@ export default function HowWePayTraders() {
           {/* Introduction */}
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 border-t-4 border-exodus-light-blue">
             <p className="text-base md:text-lg text-gray-700 leading-relaxed">
-              At ExodusProp, our goal is simple: create a transparent, rule-based performance program where traders clearly understand how payouts work, where they come from, and what to expect.
+              At Exodus, our objective is to operate a structured, rule-based simulated trading program where participants clearly understand how reward eligibility works and what conditions must be satisfied.
             </p>
             <p className="text-base md:text-lg text-gray-700 leading-relaxed mt-4 font-semibold text-exodus-dark">
-              We believe clarity builds trust — especially for a new firm.
+              Clarity reduces misunderstandings and unrealistic expectations.
             </p>
           </div>
 
@@ -70,28 +70,49 @@ export default function HowWePayTraders() {
             </h2>
             <div className="space-y-3 md:space-y-4 text-gray-700 text-base md:text-lg leading-relaxed">
               <p>
-                All accounts operated through ExodusProp are <span className="font-semibold text-exodus-dark">simulated trading environments</span>.
+                All Exodus accounts operate exclusively within a <span className="font-semibold text-exodus-dark">simulated, non-executing trading environment</span>.
+              </p>
+              <p className="font-semibold text-exodus-dark">
+                Exodus:
+              </p>
+              <ul className="space-y-2 ml-4">
+                <li className="flex items-start gap-2">
+                  <span className="text-exodus-light-blue font-bold">•</span>
+                  <span>Is not a broker</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-exodus-light-blue font-bold">•</span>
+                  <span>Does not accept trading deposits</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-exodus-light-blue font-bold">•</span>
+                  <span>Does not execute trades in live financial markets</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-exodus-light-blue font-bold">•</span>
+                  <span>Does not allocate real capital to participant trading activity</span>
+                </li>
+              </ul>
+              <p>
+                All payouts represent simulated performance-based rewards derived from hypothetical trading results and internal reward calculations.
               </p>
               <p>
-                We are not a broker, do not accept deposits, and do not place trades on behalf of users.
-              </p>
-              <p>
-                Payouts are performance-based rewards tied to simulated account results and are governed by the rules outlined in our program.
+                Participation does not involve the management of real investor funds.
               </p>
             </div>
           </div>
 
-          {/* Payout Reserve */}
+          {/* Performance Reward Reserve */}
           <div className="bg-gradient-to-br from-exodus-blue to-exodus-dark rounded-2xl shadow-xl p-6 md:p-10">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-6">
-              Our Payout Reserve
+              Performance Reward Reserve
             </h2>
             <p className="text-base md:text-lg text-gray-200 leading-relaxed mb-6">
-              To ensure payouts are processed reliably and without dependence on future sales, ExodusProp maintains a dedicated payout reserve.
+              To support operational stability, Exodus maintains an internal liquidity reserve designated for the processing of approved simulated performance rewards.
             </p>
             <div className="bg-white/10 backdrop-blur-sm border-2 border-exodus-light-blue rounded-xl p-6 md:p-8 text-center">
               <p className="text-sm md:text-base text-exodus-light-blue font-semibold mb-2">
-                Current Payout Reserve:
+                Current internal reserve allocation:
               </p>
               <p className="text-4xl md:text-6xl font-bold text-white">
                 $70,000
@@ -101,67 +122,57 @@ export default function HowWePayTraders() {
               </p>
             </div>
             <p className="text-base md:text-lg text-gray-200 leading-relaxed mt-6">
-              This reserve is separate from operational expenses and exists solely to process approved payout requests.
+              This reserve is an internal operational allocation and does not represent client deposits, segregated trust accounts, or capital backing live market exposure.
+            </p>
+            <p className="text-base md:text-lg text-gray-200 leading-relaxed mt-4">
+              Exodus may adjust this allocation at its sole discretion.
             </p>
           </div>
 
-          {/* What the Reserve Covers */}
+          {/* Illustrative Reward Range Examples */}
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10">
             <h2 className="text-2xl md:text-3xl font-bold text-exodus-dark mb-4 md:mb-6">
-              What the Reserve Covers
+              Illustrative Reward Range Examples
             </h2>
             <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-6">
-              Based on historical prop firm data and conservative assumptions, our reserve is designed to cover multiple payout requests on the same day.
+              The following figures are illustrative examples based on common program structures and are not guarantees of payout eligibility:
             </p>
             
             <div className="bg-gray-50 rounded-xl p-5 md:p-6 mb-6">
-              <h3 className="text-lg md:text-xl font-bold text-exodus-dark mb-4">
-                Typical First Payout Ranges
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                  <span className="text-sm md:text-base text-gray-700">50K performance tier:</span>
-                  <span className="text-sm md:text-base font-semibold text-exodus-dark">~$1,000 – $2,000</span>
+              <div className="space-y-4">
+                <div className="border-b border-gray-200 pb-3">
+                  <div className="text-sm md:text-base font-semibold text-exodus-dark mb-1">50K Performance Tier</div>
+                  <div className="text-sm md:text-base text-gray-700">Typical first reward range: <span className="font-semibold text-exodus-dark">~$1,000 – $2,000</span></div>
                 </div>
-                <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                  <span className="text-sm md:text-base text-gray-700">100K performance tier:</span>
-                  <span className="text-sm md:text-base font-semibold text-exodus-dark">~$2,000 – $4,000</span>
+                <div className="border-b border-gray-200 pb-3">
+                  <div className="text-sm md:text-base font-semibold text-exodus-dark mb-1">100K Performance Tier</div>
+                  <div className="text-sm md:text-base text-gray-700">Typical first reward range: <span className="font-semibold text-exodus-dark">~$2,000 – $4,000</span></div>
                 </div>
-                <div className="flex justify-between items-center pb-2">
-                  <span className="text-sm md:text-base text-gray-700">200K performance tier:</span>
-                  <span className="text-sm md:text-base font-semibold text-exodus-dark">~$4,000 – $8,000</span>
+                <div className="pb-2">
+                  <div className="text-sm md:text-base font-semibold text-exodus-dark mb-1">200K Performance Tier</div>
+                  <div className="text-sm md:text-base text-gray-700">Typical first reward range: <span className="font-semibold text-exodus-dark">~$4,000 – $8,000</span></div>
                 </div>
               </div>
             </div>
 
             <div className="bg-exodus-light-blue/10 border-l-4 border-exodus-light-blue rounded-lg p-5 md:p-6">
               <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-3">
-                Across all tiers, the average first payout is approximately <span className="font-bold text-exodus-dark">$3,300</span>.
+                Across tiers, average initial reward calculations may approximate <span className="font-bold text-exodus-dark">~$3,300</span> based on hypothetical performance scenarios.
               </p>
-              <p className="text-base md:text-lg text-gray-700 leading-relaxed">
-                With a $70,000 reserve, we can comfortably process:
-              </p>
-              <ul className="mt-3 space-y-2 ml-4">
-                <li className="flex items-start gap-2 text-sm md:text-base text-gray-700">
-                  <span className="text-exodus-light-blue font-bold">✓</span>
-                  <span>20+ average-sized payouts in a single day, or</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm md:text-base text-gray-700">
-                  <span className="text-exodus-light-blue font-bold">✓</span>
-                  <span>10–12 higher-tier payouts simultaneously</span>
-                </li>
-              </ul>
-              <p className="text-sm md:text-base text-gray-700 leading-relaxed mt-4 font-semibold">
-                This means payouts are not dependent on new challenge purchases and are handled from an existing reserve.
+              <p className="text-base md:text-lg text-gray-700 leading-relaxed font-semibold">
+                Actual reward amounts vary depending on simulated trading results and rule compliance.
               </p>
             </div>
           </div>
 
-          {/* How Payout Requests Are Processed */}
+          {/* Reward Processing Structure */}
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10">
             <h2 className="text-2xl md:text-3xl font-bold text-exodus-dark mb-4 md:mb-6">
-              How Payout Requests Are Processed
+              Reward Processing Structure
             </h2>
+            <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-6">
+              Reward requests are processed as follows:
+            </p>
             <div className="space-y-4">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 bg-exodus-light-blue rounded-full flex items-center justify-center">
@@ -169,7 +180,7 @@ export default function HowWePayTraders() {
                 </div>
                 <div className="flex-1 pt-1">
                   <p className="text-base md:text-lg text-gray-700">
-                    Trader submits a payout request from their dashboard.
+                    Participant submits a reward request through the dashboard.
                   </p>
                 </div>
               </div>
@@ -180,12 +191,12 @@ export default function HowWePayTraders() {
                 </div>
                 <div className="flex-1 pt-1">
                   <p className="text-base md:text-lg text-gray-700 mb-2">
-                    The account is reviewed for:
+                    The account undergoes review for:
                   </p>
                   <ul className="space-y-2 ml-4">
                     <li className="text-sm md:text-base text-gray-600">• Rule compliance</li>
-                    <li className="text-sm md:text-base text-gray-600">• Trade integrity</li>
-                    <li className="text-sm md:text-base text-gray-600">• Risk adherence</li>
+                    <li className="text-sm md:text-base text-gray-600">• Risk parameter adherence</li>
+                    <li className="text-sm md:text-base text-gray-600">• Trade integrity and behavioral consistency</li>
                   </ul>
                 </div>
               </div>
@@ -196,156 +207,170 @@ export default function HowWePayTraders() {
                 </div>
                 <div className="flex-1 pt-1">
                   <p className="text-base md:text-lg text-gray-700">
-                    Approved payouts are processed from the reserve.
+                    Approved reward calculations are processed from internal operational reserves.
                   </p>
                 </div>
               </div>
             </div>
 
+            <div className="mt-6 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg p-5 md:p-6">
+              <p className="text-base md:text-lg text-gray-700 leading-relaxed font-semibold">
+                Exodus reserves sole discretion in determining rule compliance and payout eligibility.
+              </p>
+            </div>
+
             <div className="mt-8 bg-gray-50 rounded-xl p-5 md:p-6">
               <h3 className="text-lg md:text-xl font-bold text-exodus-dark mb-3">
-                Processing Schedule
+                Processing Timeline
               </h3>
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2 text-sm md:text-base text-gray-700">
-                  <span className="text-exodus-light-blue font-bold">✓</span>
-                  <span>Payout requests are reviewed daily</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm md:text-base text-gray-700">
-                  <span className="text-exodus-light-blue font-bold">✓</span>
-                  <span>Approved payouts are processed within 1-3 hours</span>
-                </li>
-              </ul>
+              <p className="text-sm md:text-base text-gray-700 mb-3">
+                Reward requests are reviewed on a rolling basis.
+              </p>
+              <p className="text-sm md:text-base text-gray-700 mb-3">
+                Processing timelines may vary depending on volume, internal review requirements, and compliance verification procedures.
+              </p>
+              <p className="text-sm md:text-base text-gray-700 font-semibold">
+                No specific processing time is guaranteed.
+              </p>
             </div>
           </div>
 
-          {/* Important Notes */}
+          {/* Important Conditions */}
           <div className="bg-yellow-50 border-2 border-yellow-400 rounded-2xl p-6 md:p-10">
             <h2 className="text-2xl md:text-3xl font-bold text-yellow-900 mb-4 md:mb-6 flex items-center gap-2">
               <svg className="w-6 h-6 md:w-8 md:h-8" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              Important Notes
+              Important Conditions
             </h2>
             <ul className="space-y-3">
               <li className="flex items-start gap-2 text-sm md:text-base text-gray-800">
                 <span className="font-bold">•</span>
-                <span>Passing a challenge or holding a performance account does not guarantee a payout</span>
+                <span>Passing an evaluation or holding an Exodus Account does not guarantee reward eligibility</span>
               </li>
               <li className="flex items-start gap-2 text-sm md:text-base text-gray-800">
                 <span className="font-bold">•</span>
-                <span>Payouts are discretionary and rule-based</span>
+                <span>Reward eligibility is conditional upon full rule compliance</span>
               </li>
               <li className="flex items-start gap-2 text-sm md:text-base text-gray-800">
                 <span className="font-bold">•</span>
-                <span>Violations of trading rules void payout eligibility</span>
+                <span>Violations of program rules may void simulated gains and payout eligibility</span>
               </li>
               <li className="flex items-start gap-2 text-sm md:text-base text-gray-800">
                 <span className="font-bold">•</span>
-                <span>All payouts are tied to simulated performance outcomes</span>
+                <span>All rewards are derived exclusively from simulated trading performance</span>
               </li>
             </ul>
-            <p className="text-sm md:text-base text-gray-800 mt-6 font-semibold">
-              We publish this page so traders understand exactly how payouts work before participating.
-            </p>
           </div>
 
-          {/* Performance Math Section */}
+          {/* Understanding Reward Frequency */}
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10">
             <h2 className="text-2xl md:text-3xl font-bold text-exodus-dark mb-4 md:mb-6">
-              Understanding Payouts: The Reality
+              Understanding Reward Frequency
             </h2>
             <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-6">
-              Most traders have heard extreme claims in the prop firm industry. We prefer to share realistic performance data and math, so expectations are clear.
+              The prop trading industry often promotes unrealistic expectations.
+            </p>
+            <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-6 font-semibold text-exodus-dark">
+              Exodus believes participants should understand statistical realities.
             </p>
 
             <h3 className="text-xl md:text-2xl font-bold text-exodus-dark mb-4">
-              Challenge Pass Rates (Industry Reality)
+              Industry-Wide Observations (Not Exodus Guarantees):
             </h3>
             <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-4">
-              Across the prop trading industry, typical outcomes are:
+              Across the broader simulated prop trading industry:
             </p>
             <ul className="space-y-2 mb-6">
               <li className="flex items-start gap-2 text-sm md:text-base text-gray-700">
                 <span className="text-exodus-light-blue font-bold">•</span>
-                <span>3–5% of traders successfully complete a challenge</span>
+                <span>Approximately 3–5% of participants complete evaluation objectives</span>
               </li>
               <li className="flex items-start gap-2 text-sm md:text-base text-gray-700">
                 <span className="text-exodus-light-blue font-bold">•</span>
-                <span>Of those who pass, approximately 40–60% request a payout</span>
+                <span>Of those who advance, approximately 40–60% request a payout</span>
               </li>
               <li className="flex items-start gap-2 text-sm md:text-base text-gray-700">
                 <span className="text-exodus-light-blue font-bold">•</span>
-                <span>Many traders stop trading, violate rules, or reset before requesting payouts</span>
+                <span>Many participants reset, violate rules, or discontinue trading before reward eligibility</span>
               </li>
             </ul>
             <p className="text-sm md:text-base text-gray-600 italic">
-              This is normal and expected behavior across all firms.
+              These figures represent general industry observations only and do not predict Exodus outcomes.
             </p>
           </div>
 
           <div className="bg-exodus-dark rounded-2xl shadow-xl p-6 md:p-10 text-white">
             <h3 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">
-              What This Means in Practice
+              Hypothetical Example
             </h3>
             <p className="text-base md:text-lg text-gray-200 mb-4">
-              For every 100 challenges sold:
+              For illustration purposes only:
+            </p>
+            <p className="text-base md:text-lg text-gray-200 mb-4">
+              For every 100 evaluation purchases:
             </p>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 md:p-6 space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm md:text-base text-gray-200">Traders who pass:</span>
+                <span className="text-sm md:text-base text-gray-200">Participants completing objectives:</span>
                 <span className="text-lg md:text-xl font-bold text-exodus-light-blue">~4</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm md:text-base text-gray-200">Traders who request payout:</span>
+                <span className="text-sm md:text-base text-gray-200">Participants requesting payout:</span>
                 <span className="text-lg md:text-xl font-bold text-exodus-light-blue">~2</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm md:text-base text-gray-200">Average payout per trader:</span>
-                <span className="text-lg md:text-xl font-bold text-exodus-light-blue">$3,300</span>
+                <span className="text-sm md:text-base text-gray-200">Illustrative average reward:</span>
+                <span className="text-lg md:text-xl font-bold text-exodus-light-blue">~$3,300</span>
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-white/20">
-                <span className="text-sm md:text-base text-white font-semibold">Total payout obligation:</span>
-                <span className="text-xl md:text-2xl font-bold text-white">$6,600</span>
+                <span className="text-sm md:text-base text-white font-semibold">Illustrative total reward exposure:</span>
+                <span className="text-xl md:text-2xl font-bold text-white">~$6,600</span>
               </div>
             </div>
-            <p className="text-base md:text-lg text-gray-200 leading-relaxed mt-6">
-              This structure allows payout reserves to remain stable and predictable.
+            <p className="text-sm md:text-base text-gray-300 leading-relaxed mt-6 italic">
+              This example is hypothetical and not a representation of actual or future Exodus results.
             </p>
           </div>
 
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10">
             <h3 className="text-xl md:text-2xl font-bold text-exodus-dark mb-4">
-              Why This Matters for Traders
+              Why This Matters
             </h3>
             <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-4">
-              Because payouts are statistically infrequent and rule-dependent:
+              Because reward eligibility is statistically limited and rule-dependent:
             </p>
             <ul className="space-y-3 mb-6">
               <li className="flex items-start gap-2 text-sm md:text-base text-gray-700">
-                <span className="text-exodus-light-blue font-bold">✓</span>
-                <span>ExodusProp can maintain a pre-funded reserve</span>
+                <span className="text-exodus-light-blue font-bold">•</span>
+                <span>Internal reserves can be maintained</span>
               </li>
               <li className="flex items-start gap-2 text-sm md:text-base text-gray-700">
-                <span className="text-exodus-light-blue font-bold">✓</span>
-                <span>Payouts are not reliant on new users</span>
+                <span className="text-exodus-light-blue font-bold">•</span>
+                <span>Reward processing is not dependent on immediate new sales</span>
               </li>
               <li className="flex items-start gap-2 text-sm md:text-base text-gray-700">
-                <span className="text-exodus-light-blue font-bold">✓</span>
-                <span>Processing is not delayed by sales cycles</span>
+                <span className="text-exodus-light-blue font-bold">•</span>
+                <span>Operational stability can be preserved</span>
               </li>
             </ul>
-            <p className="text-base md:text-lg text-exodus-dark font-semibold">
-              This is how long-term prop firms survive.
+            <p className="text-base md:text-lg text-gray-700 leading-relaxed">
+              However, no assurance is given that reward frequency or participant outcomes will match historical industry observations.
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-exodus-light-blue to-blue-600 rounded-2xl shadow-xl p-6 md:p-10 text-white text-center">
+          <div className="bg-gradient-to-br from-exodus-light-blue to-blue-600 rounded-2xl shadow-xl p-6 md:p-10 text-white">
             <h3 className="text-xl md:text-2xl font-bold mb-4">
-              Why We Share This
+              Final Notice
             </h3>
-            <p className="text-base md:text-lg leading-relaxed">
-              We do not believe in hiding the math. Understanding the reality of challenge completion and payout frequency helps traders make informed decisions and reduces unrealistic expectations.
+            <p className="text-base md:text-lg leading-relaxed mb-4">
+              Exodus is a simulated trading evaluation and reward platform.
+            </p>
+            <p className="text-base md:text-lg leading-relaxed mb-4">
+              It is not regulated by a financial authority and does not provide brokerage services, investment advice, or employment.
+            </p>
+            <p className="text-base md:text-lg leading-relaxed font-semibold">
+              All participation occurs within a simulated environment.
             </p>
           </div>
 

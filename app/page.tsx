@@ -136,8 +136,8 @@ export default function Home() {
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
         </svg>
       ), 
-      label: 'Profit Split', 
-      getValue: () => '90%' 
+      label: 'Rewards', 
+      getValue: () => 'up to 90%' 
     }
   ];
 
@@ -145,12 +145,12 @@ export default function Home() {
     {
       question: "How does the 1-step evaluation work?",
       answer:
-        "Simply achieve the 8% profit target while following our risk management rules (4% max daily loss, 6% max total loss). Once you pass, you receive your funded account immediately.",
+        "Simply achieve the 8% profit target while following our risk management rules (4% max daily loss, 6% max total loss). Once you pass, you receive your demo Exodus Account immediately.",
     },
     {
       question: "When can I request payouts?",
       answer:
-        "Payouts are on-demand! You can request a payout whenever you want. All payouts are processed exclusively in USDT on the Tron network.",
+        "Although Exodus Traders trade with fictitious capital only, they may receive a reward in the form of real money once they generate profit on an demo Exodus Account. This applies regardless of whether the trader qualified through Exodus Challenge: Elite or Exodus Challenge: 1-Step. If a trader is able to trade the fictitious capital in a profitable manner, demonstrating their trading skills and the value of the data generated in the process, they may become eligible to receive a reward. Rewards from a demo Exodus Account can be processed upon request, after a minimum of 1 day trading.You can request the reward directly in your Account dashboard, provided that the demo Exodus Account is in positive profit and there are no open positions or pending orders.",
     },
     {
       question: "Can I use EAs and trading bots?",
@@ -218,10 +218,10 @@ export default function Home() {
                   {openLearnDropdown && (
                     <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2">
                       <Link
-                        href="/how-we-pay"
+                        href="/rewards"
                         className="block px-4 py-2 text-exodus-dark hover:bg-gray-100 text-sm"
                       >
-                        How We Pay Traders
+                        Rewards
                       </Link>
                       <Link
                         href="/rules"
@@ -345,12 +345,12 @@ export default function Home() {
                 backgroundImage: "linear-gradient(to bottom, #22d3ee 10%, #a5f3fc 30%, #fff 100%)"
               }}
             >
-              We Monetize <br /> Promising Traders
+              Your Search <br /> Ends Here
             </h1>
             
             {/* Description */}
             <p className="text-gray-300 max-w-3xl mx-auto text-sm md:text-2xl mb-8 md:mb-10">
-              Trade on our simulated platform and earn rewards.
+            Evaluate your trading skills on our simulated platform and earn rewards
             </p>
 
             {/* CTA Button */}
@@ -412,7 +412,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <p className="text-sm md:text-lg font-bold text-white text-center">
-                  1-Step Funding
+                  1-Step Evaluation
                 </p>
               </div>
             </div>
@@ -448,7 +448,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <p className="text-sm md:text-lg font-bold text-white text-center">
-                  On Demand Payouts
+                  On Demand Rewards
                 </p>
               </div>
             </div>
@@ -466,7 +466,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <p className="text-sm md:text-lg font-bold text-white text-center">
-                  15min Avg Payout
+                  15min Avg Reward
                 </p>
               </div>
             </div>
@@ -757,7 +757,6 @@ export default function Home() {
             How It Works
           </h2>
           <p className="text-center text-gray-300 mb-16 text-lg md:text-xl">
-            Start earning rewards. All it takes is three focused steps.
           </p>
 
           {/* Mobile: Horizontal Scroll */}
@@ -922,7 +921,7 @@ export default function Home() {
                     Exodus Account
                   </h3>
                   <p className="text-blue-50 mb-4 text-sm">
-                    Pass the Exodus Challenge and progress toward the Funded Account.
+                    Pass the Exodus Challenge and progress toward the demo Exodus Account.
                   </p>
 
                   <ul className="space-y-1.5">
@@ -930,7 +929,7 @@ export default function Home() {
                       <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>Up to 90% profit share</span>
+                      <span>Up to 90% rewards</span>
                     </li>
                     <li className="flex items-start gap-1.5 text-white text-sm">
                       <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -942,7 +941,7 @@ export default function Home() {
                       <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>On-demand payouts</span>
+                      <span>On-demand rewards</span>
                     </li>
                     <li className="flex items-start gap-1.5 text-white text-sm">
                       <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -1120,7 +1119,7 @@ export default function Home() {
                   Exodus Account
                 </h3>
                 <p className="text-blue-50 mb-4 text-xs md:text-sm">
-                  Pass the Exodus Challenge and progress toward the Funded Account.
+                  Pass the Exodus Challenge and progress toward the demo Exodus Account.
                 </p>
 
                 {/* Bullet points */}
@@ -1129,7 +1128,7 @@ export default function Home() {
                     <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span>Up to 90% profit share</span>
+                    <span>Up to 90% rewards</span>
                   </li>
                   <li className="flex items-start gap-1.5 text-white text-xs md:text-sm">
                     <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -1141,7 +1140,7 @@ export default function Home() {
                     <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span>On-demand payouts</span>
+                    <span>On-demand rewards</span>
                   </li>
                   <li className="flex items-start gap-1.5 text-white text-xs md:text-sm">
                     <svg className="w-3.5 h-3.5 text-blue-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -1525,7 +1524,9 @@ export default function Home() {
                           }}
                         >
                           <div className="flex flex-col items-center justify-center gap-1 mb-3">
-                            <span className="text-gray-500 text-sm line-through">${currentConfig.oldPrices[account]}</span>
+                            {currentConfig.oldPrices[account] !== currentConfig.prices[account] && (
+                              <span className="text-gray-500 text-sm line-through">${currentConfig.oldPrices[account]}</span>
+                            )}
                             <span className="text-exodus-light-blue text-lg font-bold">${currentConfig.prices[account]}</span>
                           </div>
                           
@@ -1619,7 +1620,9 @@ export default function Home() {
                   }}
                 >
                   <div className="flex flex-col items-center justify-center gap-1 mb-4">
-                    <span className="text-gray-500 text-lg line-through">${currentConfig.oldPrices[selectedMobileAccount]}</span>
+                    {currentConfig.oldPrices[selectedMobileAccount] !== currentConfig.prices[selectedMobileAccount] && (
+                      <span className="text-gray-500 text-lg line-through">${currentConfig.oldPrices[selectedMobileAccount]}</span>
+                    )}
                     <span className="text-exodus-light-blue text-2xl font-bold">${currentConfig.prices[selectedMobileAccount]}</span>
                   </div>
                   
@@ -1661,11 +1664,11 @@ export default function Home() {
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
-                  <span className="text-sm md:text-base">On-demand payouts in USDT (Tron)</span>
+                  <span className="text-sm md:text-base">On-demand</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
-                  <span className="text-sm md:text-base">Up to 90% profit share</span>
+                  <span className="text-sm md:text-base">Up to 90% rewards</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-exodus-light-blue text-sm md:text-base">✓</span>
@@ -2041,22 +2044,168 @@ export default function Home() {
             <p className="mb-4">
               © {new Date().getFullYear()} EXODUS TRADING LTD. All rights reserved.
             </p>
-            <p className="text-xs max-w-4xl mx-auto leading-relaxed">
-              Disclaimer: Exodus Trading Ltd. provides access to simulated trading environments strictly for educational and evaluative purposes. No live trading occurs, and no real funds are invested, traded, or managed. All activities are demo-based using virtual balances with no cash value. Participation in our challenges does not constitute a financial service or investment opportunity. We do not offer financial advice or facilitate real-market trading. Payments are for platform access only and are non-refundable. Use of our services is subject to our Terms & Conditions and Privacy Policy.
+            <p className="text-xs max-w-4xl mx-auto leading-relaxed text-left mb-6">
+              <strong className="block text-sm mb-2">Nature of Services</strong>
+              We provide access to a proprietary simulated trading platform for educational and evaluation purposes.
               <br /><br />
-              Important Disclosures about Exodus, Forex Trading Ltd. ("Forex") and the Funded-Trader Program:
-              Exodus evaluation program is intentionally designed to identify and test trading skill and strategy discipline before any 
-              proprietary capital is allocated. Most applicants do not pass on their first attempt and there is no 
-              guarantee that your performance will improve or that you will pass any future evaluations. Prospective traders should purchase an evaluation only if they are confident in their trading ability and accept the risk of not qualifying for a funded account. 
-              Evaluation fees are non-refundable for each attempt.
+              We are not a broker, investment firm, financial institution, or registered financial advisor. We do not accept customer deposits for investment, do not execute trades on behalf of customers, and do not provide financial advice.
               <br /><br />
-              If you pass the evaluation phase and become a funded trader ("FT") with Exodus, as market-facing transactions, if any, are carried out exclusively by Exodus, for Exodus own principal account and at its sole discretion. FTs do not own any trading account or 
-              position, and hold no beneficial or proprietary interest in Exodus accounts, assets or trades. When an FT submits a trade idea, Exodus may in its absolute discretion, either as an internal, administrative book entry or 
-              record the idea as an internal administrative book entry only and calculate a 
-              theoretical P&L accordingly without placing any corresponding real-money trade with any broker or exchange. In either case, P&L may be calculated at the same price-time intervals. Exodus may receive financial incentives from third parties based on trade ideas provided by FTs. Because such revenue is retained solely by Exodus and is not shared with FTs, conflicts of interest 
-              may exist between Exodus and each FT, Exodus earns fees each time an evaluation trader fails, conflicts of interest may also exist between Exodus and each evaluation trader.
+              All accounts provided are simulated/demo trading accounts.
+              
               <br /><br />
-              Forex trading involves substantial risk of loss. Past performance is not indicative of future results. Please trade responsibly.
+              <strong className="block text-sm mb-2">Platform Access</strong>
+              Payments made to the Company are solely for:
+              <br /><br />
+              • Access to a simulated trading environment<br />
+              • Access to simulated trading account credentials<br />
+              • Access to user dashboard and trading metrics<br />
+              • Participation in performance-based trading evaluations
+              <br /><br />
+              No payment constitutes an investment, deposit, or purchase of financial instruments.
+            </p>
+            <p className="text-xs max-w-4xl mx-auto leading-relaxed text-left">
+              <strong className="block text-sm mb-3">EXODUS LEGAL DISCLOSURE & PROGRAM DISCLAIMER</strong>
+              
+              <strong className="block mt-4 mb-2">Permitted Instruments & Platform Access</strong>
+              Participants in Exodus programs may trade exclusively within a simulated, non-executing trading environment. Instruments available within the platform may include foreign exchange (Forex) pairs and contracts for difference (CFDs) on indices, commodities, and other derivative products as determined by Exodus from time to time.
+              <br /><br />
+              No real market execution occurs within the Exodus platform. All trading activity takes place in a demo environment only. Exodus does not offer access to equities, exchange-traded futures, physical assets, or direct market participation.
+              <br /><br />
+              Any attempt to manipulate platform conditions, circumvent trading parameters, or exploit system-level inefficiencies may result in immediate account termination and forfeiture of simulated performance results.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">Simulated Environment — Purpose & Limitations</strong>
+              All Exodus Evaluation Accounts and Exodus Accounts operate exclusively in a simulated, non-executing environment.
+              <br /><br />
+              • No orders are transmitted to any live market.<br />
+              • No client funds are deposited into financial markets.<br />
+              • No real capital is allocated to participant trading activity.
+              <br /><br />
+              Simulated trading does not replicate all real-world market conditions. Factors such as liquidity constraints, slippage, latency, broker execution variability, psychological stress, and capital risk exposure may differ materially from live trading environments.
+              <br /><br />
+              All gains, losses, and rewards within Exodus programs are derived from hypothetical trading performance and internal reward calculations only.
+              <br /><br />
+              Participation does not involve the management of real investor funds.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">Program Difficulty & Performance Expectations</strong>
+              Exodus programs are structured to require disciplined risk management, consistency, and adherence to defined trading parameters.
+              <br /><br />
+              Success within simulated evaluation structures is not common and requires sustained performance under rule-based conditions.
+              <br /><br />
+              Even experienced traders may not successfully complete evaluation objectives or qualify for payouts.
+              <br /><br />
+              No representation is made that any participant will progress through program stages or earn performance-based rewards.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">Performance Metrics & Statistical Data</strong>
+              From time to time, Exodus may publish aggregated program statistics or participant outcome summaries for informational purposes only.
+              <br /><br />
+              Such data:
+              <br />
+              • Reflects historical simulated performance only<br />
+              • Does not guarantee future results<br />
+              • Does not represent live trading outcomes<br />
+              • May include participants who purchased multiple accounts<br />
+              • Is subject to revision without notice
+              <br /><br />
+              Past performance within a simulated environment is not indicative of future results.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">Risk Warning</strong>
+              Trading leveraged financial instruments such as Forex and CFDs involves significant risk.
+              <br /><br />
+              Leverage can amplify both gains and losses. Trading is not suitable for all individuals.
+              <br /><br />
+              Nothing contained within Exodus programs, dashboards, marketing materials, or educational content should be interpreted as investment advice or a recommendation to trade live capital.
+              <br /><br />
+              Participants are solely responsible for their own trading decisions.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">Simulated Performance Disclosure</strong>
+              All accounts provided by Exodus are simulated accounts.
+              <br /><br />
+              Hypothetical or simulated trading performance has inherent limitations:
+              <br />
+              • Simulated trades do not reflect actual execution conditions.<br />
+              • No real capital is at risk.<br />
+              • Results may not account for liquidity constraints or emotional decision-making.<br />
+              • Performance may benefit from idealized conditions.
+              <br /><br />
+              No representation is made that any participant will achieve profits or results comparable to those displayed in testimonials, marketing materials, or dashboards.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">Monitoring & Program Integrity</strong>
+              Exodus actively monitors trading activity for conduct that may violate program rules or undermine platform integrity.
+              <br /><br />
+              Prohibited conduct may include, but is not limited to:
+              <br />
+              • Exploitation of latency or data feed irregularities<br />
+              • System manipulation<br />
+              • Abuse of execution simulation conditions<br />
+              • Excessive risk concentration inconsistent with program objectives<br />
+              • Circumvention of risk limits
+              <br /><br />
+              Exodus reserves sole discretion to:
+              <br />
+              • Void simulated gains<br />
+              • Deny reward eligibility<br />
+              • Reset accounts<br />
+              • Suspend or permanently terminate access
+              <br /><br />
+              Participation does not guarantee reward eligibility.
+              <br /><br />
+              All decisions regarding rule enforcement are final.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">No Investment Advice / No Employment Relationship</strong>
+              Exodus does not provide investment, legal, tax, or financial advice.
+              <br /><br />
+              Participation in Exodus programs:
+              <br />
+              • Does not constitute an offer to buy or sell financial instruments<br />
+              • Does not create an employment relationship<br />
+              • Does not guarantee funding<br />
+              • Does not entitle participants to compensation beyond the defined simulation-based reward structure
+              <br /><br />
+              Exodus is not a broker, dealer, investment adviser, or asset manager.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">Regulatory & Jurisdictional Notice</strong>
+              Exodus operates as a simulated trading evaluation and performance reward platform.
+              <br /><br />
+              Exodus is not regulated by any financial regulatory authority and does not provide brokerage services.
+              <br /><br />
+              Participants are responsible for ensuring that their use of the platform complies with the laws of their country of residence.
+              <br /><br />
+              Access is prohibited where participation in simulated trading reward programs is restricted by local law.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">Testimonials & Media Content</strong>
+              Testimonials, interviews, livestreams, and educational content reflect individual opinions and simulated experiences only.
+              <br /><br />
+              They are not guarantees of success or reward eligibility.
+              <br /><br />
+              Media appearances or promotional participation do not imply endorsement or verified trading performance.
+              <br /><br />
+              All educational content is provided for informational purposes only.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">Intellectual Property</strong>
+              All platform materials, branding, dashboards, documentation, and media content are the intellectual property of Exodus.
+              <br /><br />
+              Unauthorized reproduction or distribution is prohibited.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">Jurisdictional Limitation</strong>
+              The Exodus platform and simulated trading services are intended solely for persons lawfully permitted to access such services in their jurisdiction.
+              <br /><br />
+              Use in restricted territories is prohibited.
+              
+              <br /><br />
+              <strong className="block mt-4 mb-2">Contact</strong>
+              For questions regarding these disclosures, contact:<br />
+              support@exodusprop.com
             </p>
           </div>
         </div>

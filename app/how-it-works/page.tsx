@@ -44,7 +44,7 @@ export default function HowItWorks() {
             How It Works
           </h1>
           <p className="text-lg md:text-2xl text-gray-200">
-            Your journey from challenge to funded trader
+            Your journey through the simulated trading evaluation program
           </p>
         </div>
       </section>
@@ -62,10 +62,10 @@ export default function HowItWorks() {
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl md:text-4xl font-bold text-exodus-dark mb-3 md:mb-4">
-                    Select Your Challenge Size
+                    Select Your Evaluation Account Size
                   </h2>
                   <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-4">
-                    Choose from our available account sizes based on your trading experience and goals:
+                    Choose from our available simulated account sizes for evaluation:
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4">
                     <div className="bg-exodus-light-blue/10 rounded-lg p-3 md:p-4 text-center border-2 border-exodus-light-blue">
@@ -86,8 +86,13 @@ export default function HowItWorks() {
                     </div>
                   </div>
                   <p className="text-sm md:text-base text-gray-600 italic">
-                    All challenges are 1-step evaluations with clear, trader-friendly rules.
+                    All evaluations are 1-step assessments in a simulated trading environment.
                   </p>
+                  <div className="mt-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg p-4">
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Important:</span> Payments are for platform access and evaluation services. All trading occurs in a simulated, non-executing environment. No real capital is traded or deployed.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -104,10 +109,10 @@ export default function HowItWorks() {
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl md:text-4xl font-bold text-exodus-dark mb-3 md:mb-4">
-                    Purchase Your Challenge
+                    Purchase Evaluation Access
                   </h2>
                   <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-4">
-                    Complete your purchase securely through our payment portal. We accept:
+                    Complete your purchase securely for platform access. We accept:
                   </p>
                   <ul className="space-y-2 mb-4">
                     <li className="flex items-start gap-2 text-sm md:text-base text-gray-700">
@@ -121,7 +126,7 @@ export default function HowItWorks() {
                   </ul>
                   <div className="bg-exodus-light-blue/10 border-l-4 border-exodus-light-blue rounded-lg p-4 md:p-5">
                     <p className="text-sm md:text-base text-gray-700">
-                      <span className="font-semibold">Note:</span> Challenge fees are one-time, non-refundable payments for platform access and evaluation services.
+                      <span className="font-semibold">Note:</span> Evaluation fees are one-time, non-refundable payments for platform access and evaluation services only. This is not an investment, deposit, or purchase of financial instruments.
                     </p>
                   </div>
                 </div>
@@ -140,10 +145,10 @@ export default function HowItWorks() {
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl md:text-4xl font-bold text-exodus-dark mb-3 md:mb-4">
-                    Receive Account Credentials
+                    Receive Simulated Account Credentials
                   </h2>
                   <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-4">
-                    After purchase, you'll receive:
+                    After purchase, you'll receive access to your simulated trading account:
                   </p>
                   <div className="grid md:grid-cols-2 gap-4 mb-4">
                     <div className="bg-gray-50 rounded-lg p-4 md:p-5">
@@ -166,8 +171,13 @@ export default function HowItWorks() {
                     </div>
                   </div>
                   <p className="text-sm md:text-base text-gray-600">
-                    You can start trading immediately after receiving your credentials.
+                    You can begin simulated trading immediately after receiving your credentials.
                   </p>
+                  <div className="mt-4 bg-gray-50 border-l-4 border-gray-400 rounded-lg p-4">
+                    <p className="text-xs text-gray-600">
+                      All accounts are simulated/demo trading accounts. No orders are transmitted to live markets. No real capital is allocated to participant trading activity.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -184,13 +194,13 @@ export default function HowItWorks() {
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl md:text-4xl font-bold text-white mb-3 md:mb-4">
-                    Trade Your Challenge
+                    Complete Your Evaluation
                   </h2>
                   <p className="text-base md:text-lg text-gray-200 leading-relaxed mb-4">
-                    Now comes the important part - prove your trading skill:
+                    Demonstrate consistent performance within the evaluation parameters:
                   </p>
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 md:p-6 mb-4">
-                    <h3 className="text-lg md:text-xl font-bold mb-3">Challenge Requirements:</h3>
+                    <h3 className="text-lg md:text-xl font-bold mb-3">Evaluation Objectives:</h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm md:text-base">Profit Target:</span>
@@ -211,8 +221,13 @@ export default function HowItWorks() {
                     </div>
                   </div>
                   <p className="text-sm md:text-base text-gray-200 italic">
-                    Trade with freedom - no minimum days, no consistency rules, just reach your profit target while following risk management.
+                    No minimum trading days required. No consistency rules. Achieve your profit target while adhering to risk parameters.
                   </p>
+                  <div className="mt-4 bg-white/10 border-l-4 border-yellow-400 rounded-lg p-4">
+                    <p className="text-xs text-gray-300">
+                      <span className="font-semibold">Important:</span> Completing evaluation objectives does not guarantee advancement or reward eligibility. All progression is subject to rule compliance and internal review.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -229,25 +244,30 @@ export default function HowItWorks() {
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl md:text-4xl font-bold text-exodus-dark mb-3 md:mb-4">
-                    Pass & Get Funded
+                    Complete Evaluation Objectives
                   </h2>
                   <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-4">
-                    Once you hit the 8% profit target while following all rules:
+                    Once you achieve the 8% profit target while adhering to all risk parameters:
                   </p>
                   <div className="bg-gradient-to-r from-exodus-light-blue/20 to-blue-100 rounded-xl p-5 md:p-6 mb-4">
                     <div className="flex items-center gap-3 mb-3">
                       <svg className="w-8 h-8 text-exodus-light-blue" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <h3 className="text-lg md:text-xl font-bold text-exodus-dark">Challenge Passed!</h3>
+                      <h3 className="text-lg md:text-xl font-bold text-exodus-dark">Evaluation Complete!</h3>
                     </div>
                     <p className="text-sm md:text-base text-gray-700">
-                      You're now eligible for a performance account and can start earning real profits.
+                      Subject to compliance review, you may become eligible for an Exodus Account and participation in the performance-based reward program.
                     </p>
                   </div>
                   <p className="text-sm md:text-base text-gray-600">
-                    Your performance account will be set up with the same balance as your challenge size.
+                    Your Exodus Account operates in the same simulated environment with the same balance as your evaluation account.
                   </p>
+                  <div className="mt-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg p-4">
+                    <p className="text-xs text-gray-700">
+                      <span className="font-semibold">Disclaimer:</span> Passing the evaluation does not guarantee account approval or reward eligibility. All advancements are subject to internal review and rule compliance verification.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -264,29 +284,34 @@ export default function HowItWorks() {
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl md:text-4xl font-bold text-white mb-3 md:mb-4">
-                    Trade Your Funded Account
+                    Participate in the Exodus Account Program
                   </h2>
                   <p className="text-base md:text-lg leading-relaxed mb-4">
-                    Continue trading with the same rules. Key benefits:
+                    Continue simulated trading with the same parameters. Key program features:
                   </p>
                   <ul className="space-y-3 mb-4">
                     <li className="flex items-start gap-2 text-sm md:text-base">
                       <span className="font-bold text-xl">✓</span>
-                      <span>Keep up to <span className="font-bold">90% of your profits</span></span>
+                      <span>Eligible for up to <span className="font-bold">90% profit share</span> on simulated performance</span>
                     </li>
                     <li className="flex items-start gap-2 text-sm md:text-base">
                       <span className="font-bold text-xl">✓</span>
-                      <span>No profit caps or withdrawal limits</span>
+                      <span>On-demand reward request structure</span>
                     </li>
                     <li className="flex items-start gap-2 text-sm md:text-base">
                       <span className="font-bold text-xl">✓</span>
-                      <span>Same trader-friendly rules</span>
+                      <span>Same risk parameters apply</span>
                     </li>
                     <li className="flex items-start gap-2 text-sm md:text-base">
                       <span className="font-bold text-xl">✓</span>
-                      <span>Scale up to larger account sizes</span>
+                      <span>Potential account scaling opportunities</span>
                     </li>
                   </ul>
+                  <div className="bg-white/10 border-l-4 border-yellow-400 rounded-lg p-4 mt-4">
+                    <p className="text-xs">
+                      <span className="font-semibold">Important:</span> All accounts remain simulated. Rewards are derived from hypothetical trading performance and internal calculations only. Participation does not involve the management of real investor funds.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -303,35 +328,47 @@ export default function HowItWorks() {
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl md:text-4xl font-bold text-exodus-dark mb-3 md:mb-4">
-                    Request Payouts On-Demand
+                    Request Performance Rewards
                   </h2>
                   <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-4">
-                    This is what it's all about - getting paid for your trading success:
+                    Submit reward requests based on your simulated performance:
                   </p>
                   <div className="bg-gradient-to-r from-exodus-light-blue/10 to-blue-50 rounded-xl p-5 md:p-6 mb-4">
-                    <h3 className="text-lg md:text-xl font-bold text-exodus-dark mb-3">Payout Process:</h3>
+                    <h3 className="text-lg md:text-xl font-bold text-exodus-dark mb-3">Reward Request Process:</h3>
                     <div className="space-y-3">
                       <div className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-exodus-light-blue text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                        <p className="text-sm md:text-base text-gray-700">Submit payout request from your dashboard</p>
+                        <p className="text-sm md:text-base text-gray-700">Submit reward request from your dashboard</p>
                       </div>
                       <div className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-exodus-light-blue text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                        <p className="text-sm md:text-base text-gray-700">Account reviewed for rule compliance</p>
+                        <p className="text-sm md:text-base text-gray-700">Account undergoes compliance and behavioral review</p>
                       </div>
                       <div className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-exodus-light-blue text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
-                        <p className="text-sm md:text-base text-gray-700">Approved payouts processed promptly</p>
+                        <p className="text-sm md:text-base text-gray-700">Approved reward calculations processed from operational reserves</p>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-exodus-dark text-white rounded-xl p-5 md:p-6">
+                  <div className="bg-exodus-dark text-white rounded-xl p-5 md:p-6 mb-4">
                     <p className="text-sm md:text-base leading-relaxed mb-3">
-                      <span className="font-bold">All payouts are made in USDT on the Tron network.</span>
+                      <span className="font-bold">All approved rewards are processed in USDT on the Tron network.</span>
                     </p>
                     <p className="text-xs md:text-sm text-gray-300">
-                      Request payouts whenever you want - daily, weekly, or as often as you prefer!
+                      Reward requests can be submitted on-demand, subject to internal review and processing timelines.
                     </p>
+                  </div>
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 rounded-lg p-4">
+                    <p className="text-xs text-gray-700 mb-2">
+                      <span className="font-semibold">Important Conditions:</span>
+                    </p>
+                    <ul className="space-y-1 text-xs text-gray-700 ml-4">
+                      <li>• Holding an Exodus Account does not guarantee reward eligibility</li>
+                      <li>• Reward eligibility is conditional upon full rule compliance</li>
+                      <li>• Violations may void simulated gains and payout eligibility</li>
+                      <li>• All rewards are derived exclusively from simulated trading performance</li>
+                      <li>• Exodus reserves sole discretion in determining rule compliance</li>
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -341,17 +378,20 @@ export default function HowItWorks() {
           {/* CTA Section */}
           <div className="mt-16 text-center bg-gradient-to-br from-exodus-blue to-exodus-dark rounded-2xl p-8 md:p-12">
             <h3 className="text-2xl md:text-4xl font-bold text-white mb-4">
-              Ready to Start Your Journey?
+              Ready to Begin Your Evaluation?
             </h3>
             <p className="text-base md:text-lg text-gray-200 mb-6 max-w-2xl mx-auto">
-              Join successful traders who are already earning with Exodus. Select your challenge size and begin today.
+              Participate in the Exodus simulated trading evaluation program. Select your account size and begin your assessment.
             </p>
             <Link
               href="/purchase"
               className="bg-exodus-light-blue hover:bg-blue-400 text-white px-8 py-4 rounded-lg font-semibold text-base md:text-lg transition shadow-lg inline-block"
             >
-              GET STARTED NOW
+              BEGIN EVALUATION
             </Link>
+            <p className="text-xs text-gray-400 mt-4 max-w-xl mx-auto">
+              By proceeding, you acknowledge that this is a simulated trading evaluation program. Success is not guaranteed and is dependent on performance and rule adherence.
+            </p>
           </div>
 
         </div>

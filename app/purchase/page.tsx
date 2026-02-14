@@ -45,31 +45,31 @@ export default function PurchasePage() {
         size: "$10,000",
         label: "10K",
         price: 81,
-        planId: "plan_XinD2yz62bhFr"
+        planId: "plan_hY7Q87XDJQ0ZH"
       },
       25000: {
         size: "$25,000",
         label: "25K",
         price: 128,
-        planId: "plan_RxbO8QLnZnNqE"
+        planId: "plan_lYPlyXnR5FmWM"
       },
       50000: {
         size: "$50,000",
         label: "50K",
         price: 174,
-        planId: "plan_U1Y9W4Yc2y1sV"
+        planId: "plan_VBWXWtNaq1pkz"
       },
       100000: {
         size: "$100,000",
         label: "100K",
         price: 336,
-        planId: "plan_ssl21qmJ3B5TE"
+        planId: "plan_FLH1rPJ7IXESW"
       },
       200000: {
         size: "$200,000",
         label: "200K",
         price: 647,
-        planId: "plan_RMeYWX1wqrNU8"
+        planId: "plan_O5TvrmzcT1FQn"
       }
     },
     elite: {
@@ -77,31 +77,31 @@ export default function PurchasePage() {
         size: "$10,000",
         label: "10K",
         price: 209,
-        planId: "plan_uLjlFmP51kgBr"
+        planId: "plan_J91P8oD10IGOr"
       },
       25000: {
         size: "$25,000",
         label: "25K",
         price: 599,
-        planId: "plan_bh27qwz47COB6"
+        planId: "plan_AqbdFzpY0Lfid"
       },
       50000: {
         size: "$50,000",
         label: "50K",
         price: 799,
-        planId: "plan_Q0UyMK3to1m7h"
+        planId: "plan_8lQEle49ulWVT"
       },
       100000: {
         size: "$100,000",
         label: "100K",
         price: 1299,
-        planId: "plan_iGUJ1iZ8ahrEU"
+        planId: "plan_oUoKhvNcTf6aV"
       },
       200000: {
         size: "$200,000",
         label: "200K",
         price: 2599,
-        planId: "plan_1WMkRt3YWUj8I"
+        planId: "plan_3A4Ug4rs6JXE9"
       }
     }
   };
