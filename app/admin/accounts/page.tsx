@@ -1452,23 +1452,33 @@ export default function AdminAccountsPage() {
   const sendFundedFailEmail = async (account: UserWithAccount) => {
     if (!account.metaApiAccount) return;
     
-    const { accountSize } = account.metaApiAccount;
+    const { accountSize, accountType } = account.metaApiAccount;
     const metrics = account.cachedMetrics;
     
-    // Determine breach type for funded accounts
+    // Determine breach type based on account type
     let breachType: 'maxDrawdown' | 'riskViolation' | 'both' = 'maxDrawdown';
-    const maxDDBreached = metrics?.maxDrawdown > 15;
-    const dailyDD = metrics?.maxDailyDrawdown || metrics?.dailyDrawdown || 0;
-    const dailyDDBreached = dailyDD > 8; // Daily drawdown breach
-    const riskViolation = dailyDD > 2 && dailyDD <= 8; // Risk violation (2-8%)
     
-    // Determine the primary breach reason
-    if (maxDDBreached && (dailyDDBreached || riskViolation)) {
-      breachType = 'both';
-    } else if (dailyDDBreached || riskViolation) {
-      breachType = 'riskViolation';
-    } else if (maxDDBreached) {
-      breachType = 'maxDrawdown';
+    if (accountType === '1-step') {
+      // 1-Step: 6% static max DD, 4% daily loss
+      const maxDDBreached = metrics?.maxDrawdown > 6;
+      const dailyDD = metrics?.maxDailyDrawdown || metrics?.dailyDrawdown || 0;
+      const dailyDDBreached = dailyDD > 4;
+      
+      if (maxDDBreached && dailyDDBreached) {
+        breachType = 'both';
+      } else if (dailyDDBreached) {
+        breachType = 'riskViolation';
+      } else if (maxDDBreached) {
+        breachType = 'maxDrawdown';
+      }
+    } else {
+      // Elite: No max DD, 10% trailing daily loss
+      const dailyDD = metrics?.maxDailyDrawdown || metrics?.dailyDrawdown || 0;
+      const dailyDDBreached = dailyDD > 10;
+      
+      if (dailyDDBreached) {
+        breachType = 'riskViolation';
+      }
     }
     
     try {
@@ -1482,6 +1492,7 @@ export default function AdminAccountsPage() {
           email: account.email,
           name: account.displayName || `${account.firstName} ${account.lastName}`.trim() || account.email,
           accountSize,
+          accountType, // Pass account type to determine which email template to use
           breachType,
           maxDrawdown: metrics?.maxDrawdown || 0,
           dailyDrawdown: metrics?.maxDailyDrawdown || metrics?.dailyDrawdown || 0,
@@ -1504,13 +1515,16 @@ export default function AdminAccountsPage() {
   const sendFundedDrawdownWarningEmail = async (account: UserWithAccount) => {
     if (!account.metaApiAccount || !account.cachedMetrics) return;
     
-    const { accountSize } = account.metaApiAccount;
+    const { accountSize, accountType } = account.metaApiAccount;
     const metrics = account.cachedMetrics;
     
-    // Determine warning type
-    const warningType = metrics.maxDrawdown > 6 
-      ? 'approaching-max' 
-      : 'approaching-risk-limit';
+    // Determine warning type based on account type
+    let warningType = 'approaching-risk-limit';
+    if (accountType === '1-step') {
+      // 1-Step has a 6% max DD limit
+      warningType = metrics.maxDrawdown > 4.5 ? 'approaching-max' : 'approaching-risk-limit';
+    }
+    // Elite has no max DD, so always risk-limit warning
     
     try {
       const response = await fetch('/api/send-challenge-emails', {
@@ -1523,6 +1537,7 @@ export default function AdminAccountsPage() {
           email: account.email,
           name: account.displayName || `${account.firstName} ${account.lastName}`.trim() || account.email,
           accountSize,
+          accountType, // Pass account type to determine correct rules
           currentDrawdown: metrics.maxDrawdown || 0,
           warningType,
           adminEmail: 'support@exodus-capital.com'

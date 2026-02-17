@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, email, name, challengeType, accountSize, step, breachType, maxDrawdown, dailyDrawdown, currentDrawdown, warningType, adminEmail } = body;
+    const { type, email, name, challengeType, accountSize, step, breachType, maxDrawdown, dailyDrawdown, currentDrawdown, warningType, adminEmail, accountType, customHtml } = body;
 
     if (!type || !email || !name) {
       return NextResponse.json(
@@ -18,53 +18,88 @@ export async function POST(request: NextRequest) {
     let htmlContent = '';
     let subject = '';
 
-    // Generate email based on type
-    switch (type) {
-      case 'pass':
-        subject = `🎉 Congratulations! You've Passed Your ${step || 'Challenge'}!`;
-        htmlContent = generatePassEmail(name, challengeType, accountSize, step);
-        break;
+    // Use custom HTML if provided, otherwise generate based on type
+    if (customHtml) {
+      htmlContent = customHtml;
       
-      case 'fail':
-        subject = `Challenge Update - ${challengeType}`;
-        htmlContent = generateFailEmail(name, challengeType, accountSize, breachType, maxDrawdown, dailyDrawdown);
-        break;
-      
-      case 'drawdown-warning':
-        subject = `⚠️ Drawdown Warning - Action Required`;
-        htmlContent = generateDrawdownWarningEmail(name, challengeType, accountSize, currentDrawdown);
-        break;
-      
-      case 'funded-pass':
-        subject = `🎊 Congratulations! Your Funded Account Is Ready!`;
-        htmlContent = generateFundedPassEmail(name, accountSize);
-        break;
-      
-      case 'funded-fail':
-        subject = `Funded Account Status Update`;
-        htmlContent = generateFundedFailEmail(name, accountSize, breachType, maxDrawdown, dailyDrawdown);
-        break;
-      
-      case 'funded-drawdown-warning':
-        subject = `⚠️ Funded Account Warning - Please Review`;
-        htmlContent = generateFundedDrawdownWarningEmail(name, accountSize, currentDrawdown, warningType);
-        break;
-      
-      case 'admin-pass-notification':
-        subject = `Admin Alert: User Passed Challenge`;
-        htmlContent = generateAdminPassNotification(name, email, challengeType, accountSize, maxDrawdown, dailyDrawdown);
-        break;
-      
-      case 'admin-fail-notification':
-        subject = `Admin Alert: User Failed Challenge`;
-        htmlContent = generateAdminFailNotification(name, email, challengeType, accountSize, maxDrawdown, dailyDrawdown);
-        break;
-      
-      default:
-        return NextResponse.json(
-          { error: `Unknown email type: ${type}` },
-          { status: 400 }
-        );
+      // Set subject based on type
+      switch (type) {
+        case 'pass':
+          subject = `🎉 Congratulations! You've Passed Your ${step || 'Challenge'}!`;
+          break;
+        case 'fail':
+          subject = `Challenge Update - ${challengeType}`;
+          break;
+        case 'drawdown-warning':
+          subject = `⚠️ Drawdown Warning - Action Required`;
+          break;
+        case 'funded-pass':
+          subject = `🎊 Congratulations! Your Funded Account Is Ready!`;
+          break;
+        case 'funded-fail':
+          subject = `Funded Account Status Update`;
+          break;
+        case 'funded-drawdown-warning':
+          subject = `⚠️ Funded Account Warning - Please Review`;
+          break;
+        case 'admin-pass-notification':
+          subject = `Admin Alert: User Passed Challenge`;
+          break;
+        case 'admin-fail-notification':
+          subject = `Admin Alert: User Failed Challenge`;
+          break;
+        default:
+          subject = 'Exodus Notification';
+      }
+    } else {
+      // Generate email based on type
+      switch (type) {
+        case 'pass':
+          subject = `🎉 Congratulations! You've Passed Your ${step || 'Challenge'}!`;
+          htmlContent = generatePassEmail(name, challengeType, accountSize, step);
+          break;
+        
+        case 'fail':
+          subject = `Challenge Update - ${challengeType}`;
+          htmlContent = generateFailEmail(name, challengeType, accountSize, breachType, maxDrawdown, dailyDrawdown);
+          break;
+        
+        case 'drawdown-warning':
+          subject = `⚠️ Drawdown Warning - Action Required`;
+          htmlContent = generateDrawdownWarningEmail(name, challengeType, accountSize, currentDrawdown);
+          break;
+        
+        case 'funded-pass':
+          subject = `🎊 Congratulations! Your Funded Account Is Ready!`;
+          htmlContent = generateFundedPassEmail(name, accountSize);
+          break;
+        
+        case 'funded-fail':
+          subject = `Funded Account Status Update`;
+          htmlContent = generateFundedFailEmail(name, accountSize, breachType, maxDrawdown, dailyDrawdown, accountType || '1-step');
+          break;
+        
+        case 'funded-drawdown-warning':
+          subject = `⚠️ Funded Account Warning - Please Review`;
+          htmlContent = generateFundedDrawdownWarningEmail(name, accountSize, currentDrawdown, warningType, accountType || '1-step');
+          break;
+        
+        case 'admin-pass-notification':
+          subject = `Admin Alert: User Passed Challenge`;
+          htmlContent = generateAdminPassNotification(name, email, challengeType, accountSize, maxDrawdown, dailyDrawdown);
+          break;
+        
+        case 'admin-fail-notification':
+          subject = `Admin Alert: User Failed Challenge`;
+          htmlContent = generateAdminFailNotification(name, email, challengeType, accountSize, maxDrawdown, dailyDrawdown);
+          break;
+        
+        default:
+          return NextResponse.json(
+            { error: `Unknown email type: ${type}` },
+            { status: 400 }
+          );
+      }
     }
 
     // Send email
@@ -520,41 +555,48 @@ function generateFundedPassEmail(name: string, accountSize: number): string {
   `.trim();
 }
 
-function generateFundedFailEmail(name: string, accountSize: number, breachType: string, maxDrawdown: number, dailyDrawdown: number): string {
-  // Funded Account Rules
-  const fundedMaxDD = 10; // 10% max drawdown for funded
-  const fundedDailyDD = 5; // 5% daily drawdown for funded
+function generateFundedFailEmail(name: string, accountSize: number, breachType: string, maxDrawdown: number, dailyDrawdown: number, accountType: string = '1-step'): string {
+  // Funded Account Rules based on account type
+  const isElite = accountType === 'elite';
+  const fundedMaxDD = isElite ? null : 6; // 1-Step: 6% static, Elite: no limit
+  const fundedDailyDD = isElite ? 10 : 4; // 1-Step: 4%, Elite: 10% trailing
   
   // Determine specific breach details
   let breachDetails = '';
   let breachSpecifics = '';
   
-  if (breachType === 'maxDrawdown' || maxDrawdown > fundedMaxDD) {
-    breachDetails = 'Maximum Drawdown Limit';
-    breachSpecifics = `<li><strong style="color: #dc2626;">Your Maximum Drawdown:</strong> ${maxDrawdown?.toFixed(2) || 'N/A'}%</li>
-                      <li><strong>Maximum Allowed:</strong> ${fundedMaxDD}%</li>`;
-  } else if (breachType === 'riskViolation' || (dailyDrawdown > fundedDailyDD)) {
-    breachDetails = 'Daily Drawdown / Risk Management Violation';
+  if (isElite) {
+    // Elite only has daily drawdown violations (no max DD)
+    breachDetails = 'Daily Loss Limit Violation';
     breachSpecifics = `<li><strong style="color: #dc2626;">Your Daily Drawdown:</strong> ${dailyDrawdown?.toFixed(2) || 'N/A'}%</li>
-                      <li><strong>Maximum Allowed:</strong> ${fundedDailyDD}%</li>
-                      <li><strong>Note:</strong> Daily drawdown exceeding 2% indicates risking more than the 2% limit</li>`;
-  } else if (breachType === 'both') {
-    breachDetails = 'Multiple Rule Violations';
-    breachSpecifics = `<li><strong style="color: #dc2626;">Your Maximum Drawdown:</strong> ${maxDrawdown?.toFixed(2) || 'N/A'}% (Limit: ${fundedMaxDD}%)</li>
-                      <li><strong style="color: #dc2626;">Your Daily Drawdown:</strong> ${dailyDrawdown?.toFixed(2) || 'N/A'}% (Limit: ${fundedDailyDD}%)</li>
-                      <li><strong>Note:</strong> Daily drawdown exceeding 2% indicates risking more than the 2% limit</li>`;
+                      <li><strong>Maximum Allowed:</strong> ${fundedDailyDD}% (Trailing EOD)</li>`;
   } else {
-    breachDetails = 'Funded Account Rules';
-    breachSpecifics = '<li>Please review your account for specific details</li>';
+    // 1-Step can have max DD and/or daily DD violations
+    if (breachType === 'maxDrawdown' || (fundedMaxDD && maxDrawdown > fundedMaxDD)) {
+      breachDetails = 'Maximum Drawdown Limit';
+      breachSpecifics = `<li><strong style="color: #dc2626;">Your Maximum Drawdown:</strong> ${maxDrawdown?.toFixed(2) || 'N/A'}%</li>
+                        <li><strong>Maximum Allowed:</strong> ${fundedMaxDD}% (Static)</li>`;
+    } else if (breachType === 'riskViolation' || (dailyDrawdown > fundedDailyDD)) {
+      breachDetails = 'Daily Loss Limit Violation';
+      breachSpecifics = `<li><strong style="color: #dc2626;">Your Daily Drawdown:</strong> ${dailyDrawdown?.toFixed(2) || 'N/A'}%</li>
+                        <li><strong>Maximum Allowed:</strong> ${fundedDailyDD}%</li>`;
+    } else if (breachType === 'both') {
+      breachDetails = 'Multiple Rule Violations';
+      breachSpecifics = `<li><strong style="color: #dc2626;">Your Maximum Drawdown:</strong> ${maxDrawdown?.toFixed(2) || 'N/A'}% (Limit: ${fundedMaxDD}%)</li>
+                        <li><strong style="color: #dc2626;">Your Daily Drawdown:</strong> ${dailyDrawdown?.toFixed(2) || 'N/A'}% (Limit: ${fundedDailyDD}%)</li>`;
+    } else {
+      breachDetails = 'Funded Account Rules';
+      breachSpecifics = '<li>Please review your account for specific details</li>';
+    }
   }
   
-  let breachMessage = `We regret to inform you that your funded account has been terminated due to breaching <strong>${breachDetails}</strong>.`;
+  let breachMessage = `We regret to inform you that your ${isElite ? 'Elite' : '1-Step'} funded account has been terminated due to breaching <strong>${breachDetails}</strong>.`;
   if (breachType === 'both') {
-    breachMessage = `Your funded account breached both the maximum drawdown (${maxDrawdown.toFixed(2)}%) and risk limits.`;
+    breachMessage = `Your funded account breached both the maximum drawdown (${maxDrawdown.toFixed(2)}%) and daily loss limits.`;
   } else if (breachType === 'maxDrawdown') {
     breachMessage = `Your funded account exceeded the maximum drawdown limit at ${maxDrawdown.toFixed(2)}%.`;
   } else if (breachType === 'riskViolation') {
-    breachMessage = `Your funded account violated the risk management rules with a daily drawdown of ${dailyDrawdown.toFixed(2)}%.`;
+    breachMessage = `Your funded account violated the daily loss limit with a drawdown of ${dailyDrawdown.toFixed(2)}%.`;
   }
 
   return `
@@ -607,12 +649,16 @@ function generateFundedFailEmail(name: string, accountSize: number, breachType: 
               <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; border-radius: 8px; margin-bottom: 30px;">
                 <tr>
                   <td style="padding: 25px;">
-                    <h2 style="color: #1a1a1a; font-size: 18px; margin: 0 0 15px 0;">Funded Account Rules Reminder</h2>
+                    <h2 style="color: #1a1a1a; font-size: 18px; margin: 0 0 15px 0;">${isElite ? 'Elite' : '1-Step'} Funded Account Rules Reminder</h2>
                     <ul style="margin: 0; padding-left: 20px; line-height: 1.8; color: #4a5568;">
-                      <li><strong>Maximum Drawdown:</strong> 10%</li>
-                      <li><strong>Daily Drawdown:</strong> 5% maximum per day</li>
-                      <li><strong>Risk Management:</strong> Maximum 2% risk on open positions at any time</li>
-                      <li><strong>Important:</strong> Daily drawdown exceeding 2% indicates risking more than allowed</li>
+                      ${isElite 
+                        ? `<li><strong>Maximum Drawdown:</strong> None</li>
+                           <li><strong>Daily Loss Limit:</strong> 10% (Trailing EOD)</li>`
+                        : `<li><strong>Maximum Drawdown:</strong> 6% (Static)</li>
+                           <li><strong>Daily Loss Limit:</strong> 4% maximum per day</li>`
+                      }
+                      <li><strong>Profit Target:</strong> ${isElite ? '10%' : '8%'} for evaluation completion</li>
+                      <li><strong>Important:</strong> All risk parameters must be maintained at all times</li>
                     </ul>
                   </td>
                 </tr>
@@ -661,15 +707,22 @@ function generateFundedFailEmail(name: string, accountSize: number, breachType: 
   `.trim();
 }
 
-function generateFundedDrawdownWarningEmail(name: string, accountSize: number, currentDrawdown: number, warningType: string): string {
-  // Funded Account Rules
-  const fundedMaxDD = 10; // 10% max drawdown
-  const fundedDailyDD = 5; // 5% daily drawdown
-  const riskLimit = 2; // 2% risk limit
+function generateFundedDrawdownWarningEmail(name: string, accountSize: number, currentDrawdown: number, warningType: string, accountType: string = '1-step'): string {
+  // Funded Account Rules based on account type
+  const isElite = accountType === 'elite';
+  const fundedMaxDD = isElite ? null : 6; // 1-Step: 6%, Elite: none
+  const fundedDailyDD = isElite ? 10 : 4; // 1-Step: 4%, Elite: 10% trailing
   
-  const warningDetails = warningType === 'approaching-max'
-    ? `Your current drawdown is ${currentDrawdown.toFixed(2)}%, approaching the ${fundedMaxDD}% maximum limit.`
-    : `Your current risk exposure is approaching the ${riskLimit}% limit. Remember, if your daily drawdown exceeds ${riskLimit}%, it means you're risking more than allowed.`;
+  let warningDetails = '';
+  if (warningType === 'approaching-max') {
+    if (isElite) {
+      warningDetails = `Your current drawdown is ${currentDrawdown.toFixed(2)}%. Elite accounts have no maximum drawdown limit, but please maintain proper risk management.`;
+    } else {
+      warningDetails = `Your current drawdown is ${currentDrawdown.toFixed(2)}%, approaching the ${fundedMaxDD}% maximum limit.`;
+    }
+  } else {
+    warningDetails = `Your current risk exposure is approaching critical levels. Please review your open positions and maintain proper risk management.`;
+  }
   
   return `
 <!DOCTYPE html>
@@ -712,11 +765,15 @@ function generateFundedDrawdownWarningEmail(name: string, accountSize: number, c
                     <p style="color: #78350f; font-size: 14px; line-height: 1.7; margin: 0 0 15px 0;">
                       ${warningDetails}
                     </p>
-                    <p style="color: #92400e; font-size: 14px; font-weight: 600; margin: 0 0 10px 0;">Funded Account Limits:</p>
+                    <p style="color: #92400e; font-size: 14px; font-weight: 600; margin: 0 0 10px 0;">${isElite ? 'Elite' : '1-Step'} Funded Account Limits:</p>
                     <ul style="margin: 0; padding-left: 20px; color: #78350f; font-size: 14px; line-height: 1.8;">
-                      <li><strong>Maximum Drawdown:</strong> ${fundedMaxDD}%</li>
-                      <li><strong>Daily Drawdown:</strong> ${fundedDailyDD}% maximum</li>
-                      <li><strong>Risk Limit:</strong> ${riskLimit}% maximum on open positions</li>
+                      ${isElite 
+                        ? `<li><strong>Maximum Drawdown:</strong> None</li>
+                           <li><strong>Daily Loss Limit:</strong> ${fundedDailyDD}% (Trailing EOD)</li>`
+                        : `<li><strong>Maximum Drawdown:</strong> ${fundedMaxDD}% (Static)</li>
+                           <li><strong>Daily Loss Limit:</strong> ${fundedDailyDD}% maximum</li>`
+                      }
+                      <li><strong>Important:</strong> All risk parameters must be maintained at all times</li>
                     </ul>
                   </td>
                 </tr>
